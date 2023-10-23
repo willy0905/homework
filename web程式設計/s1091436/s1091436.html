@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <title>Debug</title>
+    <style type = "text/css">
+		ul ol { list-style: none; }
+		#s1
+		{ 
+			margin:5px;
+			float:left;
+		}
+		#s2 
+		{ 
+			margin:5px;
+		}
+		ul,li
+		{
+			list-style-type:none;
+		}
+		body {
+			background:#faf6f3
+		}	  
+		table {
+			width: 100%;
+			margin-left: 5px;
+			border:1px solid black;	
+        }
+		tr,td {
+			border:1px solid black;
+		}
+		</style>
+  </head>
+  <body>
+	<img src="kfc.png" style="margin-left:10px" alt=""> <br>
+	<div id = "body">
+		<div id="s1">
+			<ol>
+				<li>
+					<img src="keyword_pic1.png" alt=""><b>預訂快取</b>
+					<ul>
+						<li>
+							肯德基提供美食網路外送餐點服務，叫外送餐點迅速滿足，速食店外送首選肯德基！
+						</li>
+					</ul>
+				</li>
+				<li>
+					<img src="keyword_pic3.png" alt=""><b>主力商品</b>
+					<ul>
+						<li>
+							肯德基快樂聚餐首選！各式現炸炸雞外送、預約外帶：咔啦脆雞、薄皮嫩雞、上校薄脆雞、紙包雞、BBQ烤雞等美味炸雞，吮指炸雞超好吃！
+						</li>
+					</ul>
+				</li>
+				<li>
+					<img src="keyword_pic5.png" alt=""><b>蛋撻</b>
+					<ul>
+						<li>
+							肯德基各式美味蛋撻：葡式蛋撻、原味蛋撻，最優惠蛋撻價格，甜入你心。
+						</li>
+					</ul>
+				</li>
+				
+				<li>
+					<img src="keyword_pic7.png" alt=""><b>點心</b>
+					<ul>
+						<li>
+							肯德基炸雞搭配薯條、雞肉漢堡、勁爆雞米花、黃金炸雞塊、經典好吃現炸炸雞只選肯德基！
+						</li>
+					</ul>
+				</li>
+			</ol>
+		</div>
+		<div id="s2">
+			<ol>
+				<li>
+					<img src="keyword_pic1.png" alt=""><b>外送訂餐</b>
+					<ul>
+						<li>
+							肯德基更提供預訂快取服務，讓你線上網路訂餐，到店快取美食超省時，美食外帶首選肯德基！
+						</li>
+					</ul>
+				</li>
+				<li>
+					<img src="keyword_pic3.png" alt=""><b>早餐</b>
+					<ul>
+						<li>
+							超優惠肯德基早餐，獨家美味燒餅、蛋堡、烤餅、嫩雞粥任你選，肯德基美味早餐給你滿滿活力！
+						</li>
+					</ul>
+				</li>
+				<li>
+					<img src="keyword_pic5.png" alt=""><b>獨有產品</b>
+					<ul>
+						<li>
+							肯德基獨特餐點：墨西哥莎莎霸王捲、咔啦雞腿堡、脆腿條，獨特口感，挑逗你味蕾！
+						</li>
+					</ul>
+				</li>
+				<li>
+					<img src="keyword_pic7.png" alt=""><b>網路訂餐優惠活動</b>
+					<ul>
+						<li>
+							肯德基預訂快取好禮三選一、獨家外送優惠、各種肯德基早餐優惠，肯德基外送美食、預訂快取
+						</li>
+						<li>
+							最優惠!
+						</li>
+					</ul>
+				</li>
+			</ol>
+		</div>
+	</div>
+	<form method = "post" action = "s1091436_debug.php">	
+		<table>		
+			<tr>
+				<td class="menu" style="text-align:center"><img src="menu1.jpg" alt="No 1"/><br>8塊雞感恩桶餐 $399<br>選購:<input name = "order" type = "checkbox" value="1"><br>數量:<input type="number" min=0 max=10 value=0 name="n1"></td>
+				<td class="menu" style="text-align:center"><img src="menu2.jpg" alt="No 2"/><br>椒香麻辣脆雞雙人分享餐 $299<br>選購:<input name = "order" type = "checkbox" value="2"><br>數量:<input type="number" min=0 max=10 value=0 name="n2"></td>
+				<td class="menu" style="text-align:center"><img src="menu3.jpg" alt="No 3"/><br>派對B餐6塊雞桶 $409<br>選購:<input name = "order" type = "checkbox" value="3"><br>數量:<input type="number" min=0 max=10 value=0 name="n3"></td>
+				<td class="menu" style="text-align:center"><img src="menu4.jpg" alt="No 4"/><br>開燻雙拼餐 $499<br>選購:<input name = "order" type = "checkbox" value="4"><br>數量:<input type="number" min=0 max=10 value=0 name="n4"></td>
+			</tr>
+			<tr>
+				<td>*訂購人:</td>
+				<td><input name = "name" type = "text" required> </td>
+				<td>*電話:</td>
+				<td><input name = "tel" type = "text"  placeholder="0987-654-321" pattern="09\d{2}-\d{3}-\d{3}" required></td>
+			</tr>
+			<tr>
+				<td>*Email:</td>
+				<td colspan="3"><input name = "email" type = "text"> </td>
+			</tr>   
+			<tr>
+				<td>*地址:</td>
+				<td colspan="3"><input name = "address" type = "text" required> </td>
+			</tr>
+			<tr>
+				<td colspan="4" style="text-align:center">
+					<input type = "submit" value = "Submit">
+					<input type = "reset" value = "Clear">
+				</td>
+			</tr>
+		</table>
+	</form>
+  </body>
+</html>

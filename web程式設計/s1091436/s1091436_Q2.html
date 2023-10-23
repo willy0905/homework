@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset ="utf-8">
+    <title>test</title>
+    <style type="text/css">
+    #box1 {
+      position:relative;
+      width:500px;
+      height:100px;
+      margin:0 auto 10px;
+      border:1px solid black;
+      padding:10px;
+      }
+    #box2 
+    {
+      font-size:12px;
+      position:relative;
+      width:60px;
+      height:60px;
+      border:1px solid red;
+	  -webkit-animation: movingimage linear 4s 0s  infinite alternate;
+            -moz-animation: movingimage linear 4s 0s  infinite alternate;
+            animation: movingimage linear 4s 0s  infinite alternate;
+	  -webkit-transition: -webkit-transform 4s;
+            -moz-transition: -moz-transform 4s;
+            -o-transition: -o-transform 4s;
+            transition: transform 4s;
+    }
+	         @-webkit-keyframes movingimage
+         {
+            0%   {opacity: 1; left: 0px; top: 0px;}
+            100% {opacity: 1; left: 420px; top: 0px;}
+         }
+	@-moz-keyframes movingimage
+         {
+            0%   {opacity: 1; left: 0px; top: 0px;}
+            100% {opacity: 1; left: 420px; top: 0px;}
+         }
+         @keyframes movingimage
+         {
+            0%   {opacity: 1; left: 0px; top: 0px;}
+            100% {opacity: 1; left: 420px; top: 0px;}
+         }
+	#box2
+	{
+	            -webkit-transform: rotate(360deg) scale(2, 2);
+            -moz-transform: rotate(360deg) scale(2, 2);
+            -o-transform: rotate(360deg) scale(2, 2);
+            transform: rotate(360deg) scale(2, 2);
+
+	}
+    #box2 p {
+      text-align:center;
+      padding-top:4px;
+    }
+  #box1:hover #box2 {
+     
+}
+    </style>
+     <body>
+        <div id="box1">
+            <div id="box2"><p>Rotate 720</p></div>
+        </div>
+
+</body>
+</html>
