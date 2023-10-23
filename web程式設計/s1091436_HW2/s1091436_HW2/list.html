@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset ="utf-8">
+    <title>list</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<style type = "text/css">
+         h1       { font-size: 50pt;
+                    font-family: tahoma, helvetica, sans-serif; }
+         p        { font-size: 30pt;
+                    font-family: arial, sans-serif;}
+      </style>
+	</head>
+	<body>
+	  <form method = "POST" action = "s1091436_hw2.php">
+	  <section id="banner" data-video="images/banner">
+					<div class="inner">
+						<header>
+    
+    <h1 style="color:aqua">購物清單<a href="http://140.138.152.215:8787/files/public_html/HW2/HW2.html ">home</a><h>
+    <p>
+      <label>Email:
+        <input type = "mail" name="mail" id="email" placeholder = "name@domain.com" required />
+      </label>
+    </p>
+    <p >
+      <label>姓名:
+        <input type = "name" name="usename" id="usename" placeholder="###" pattern ="\D{3}" required />
+      </label>
+    </p>
+    <p>
+   <strong>性別</strong><br>
+   <label>男
+      <input name = "gender"  type = "radio" value = "boy" checked></label>
+   <label>女
+      <input name = "gender"  type = "radio" value = "girl" />
+      </label>
+    </p>
+    <p>
+      <label>電話:
+         <input type = "phone" name="phone" id ="09##-###-###" placeholder="09##-###-###" pattern ="[0][9]\d{2}-\d{3}-\d{3}" required />
+      </label>
+    </p>
+    <p>
+      <label>s學號:
+         <input type = "snumber" name="snumber" id="s######" placeholder="s#######" pattern ="[s]\d{7}" required />
+      </label>
+    </p>
+    <p>
+      <label>身分證:
+        <input type ="yourid" name="yourid" id="yourid" placeholder="A#########" pattern ="\D{1}\d{9}" required />
+      </label>
+     <p>
+      <label>休閒帆布鞋
+        <select name = "rating1">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+    </p>
+      <p>
+        <label>小白鞋厚底運動鞋
+          <select name = "rating2">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <p><label>皮鞋墊休閒鞋(黑)
+         <select name = "rating3">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>穆勒鞋女鞋
+         <select name = "rating4">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>餅乾鞋綁帶帆布女鞋
+         <select name = "rating5">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>蝴蝶結布面便鞋
+         <select name = "rating6">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>撞色厚底增高運動小白鞋
+          <select name = "rating7">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>韓系撞色雙線運動休閒小白鞋
+         <select name = "rating8">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>皮鞋墊休閒鞋(白)
+          <select name = "rating9">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>韓妞星星綁帶小白鞋女鞋
+         <select name = "rating10">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>隕石運動鞋增高老爹鞋
+         <select name = "rating11">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+      <p>
+        <label>潮流運動風休閒鞋
+         <select name = "rating12">
+                  <option selected>0</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+               </select>
+        </label>
+      </p>
+    <p>
+      <input type = "submit" value = "提交"/>
+      <input type = "reset" value = "清除" />
+    </p>
+    </form>
+  </body>
+</html>
