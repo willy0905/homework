@@ -1,0 +1,490 @@
+'use strict';
+const config = require('./public/js/config.js');
+const mysql = require('mysql')
+const express = require('express')
+var os = require('os');
+var router = express.Router();
+var app = express();
+var http = require('http')
+var https= require('https')
+var fs = require('fs')
+const jwt = require('jsonwebtoken');
+const formidable = require('formidable');
+var path=require('path')
+var socketIO = require('socket.io');
+const cookieParser = require('cookie-parser')
+const session = require('express-session')
+const bodyParser = require('body-parser')
+const db = require('./models/connection_db');
+const encryption = require('./models/encryption.js');
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'from140.138.144.152@gmail.com',
+        pass: 'blawmoxjdzxcgwxr'
+    }
+});
+//middlewares
+app.use(express.static('public'));
+app.use(bodyParser.json());
+var urlencodedPsrser = bodyParser.urlencoded({ extended: false });
+var sleep = require('system-sleep');
+app.use(session({
+  secret: 'mySecret',
+  name: 'user', // optional
+  saveUninitialized: false,
+  resave: true, 
+}));
+
+function auth_student(req, res, next) {
+  if (req.session.student) {
+    next()
+  } 
+  else {
+    req.session.destroy()
+    return res.redirect('/index')
+  }
+}
+
+function auth_professor(req, res, next) {
+  if (req.session.professor) {
+    next()
+  } 
+  else {
+    req.session.destroy()
+    return res.redirect('/index')
+  }
+}
+
+function auth_sysadmin(req, res, next) {
+  if (req.session.sysadmin) {
+    next()
+  } 
+  else {
+    req.session.destroy();
+    return res.redirect('/index')
+  }
+}
+
+const sslServer = https.createServer( 
+   {
+      key: fs.readFileSync(path.join(__dirname,'cert','key.pem')),
+      cert:fs.readFileSync(path.join(__dirname,'cert','cert.pem'))
+
+   },app
+)
+sslServer.listen(process.env.PORT || 1447);
+
+
+
+
+//-------------------login-------------------
+
+app.get("/e", function(req, res){
+  db.query('SELECT class_no, exam_file FROM professor_exam_file WHERE account = ? ', ["CS233A"], function(err,rows){
+    if(!err){
+      res.render("./professor/main_exam.ejs", {professor:"CS233A", page:"Exam", datalist:rows});
+    }
+  });
+});
+app.get("/c", function(req, res){
+  res.render("./professor/main_exam.ejs", {professor:"CS233A", page:"Draw up"});
+});
+//-----------------logout----------------------
+
+app.post("/logout",urlencodedPsrser ,function(req,res,next) {
+  req.session.destroy();
+  res.redirect('/index');
+});
+
+
+//-----------------login_page----------------------
+
+app.get("/index", function(req, res){
+  res.render("./user_action/index.ejs", {log_fail:'',fgt_success:'',fgt_fail:''});
+});
+app.post("/login",urlencodedPsrser ,function(req,res,next) {
+  const userData = {
+    account: req.body.login_account,
+    password: req.body.login_password//encryption(req.body.txtUserPwd)
+  }
+  db.query('SELECT account,password,authority FROM user_account_info WHERE account = ? AND password = ?', [userData.account, userData.password], function(err,rows){
+    if(err||rows[0]==null){
+      res.render("./user_action/index.ejs", {log_fail:'請輸入正確的帳號和密碼。',fgt_success:'',fgt_fail:''});
+    }
+    else{
+      const token =jwt.sign({userData,exp: Math.floor(Date.now()/1000)+(60*15)},'my_scecret_key');
+      if(rows[0].authority==0){ // 0 student, 2 professor, 1 sysadmin
+        req.session.student =  req.body.login_account;
+        res.redirect('/user/student');
+      }
+      else if(rows[0].authority==1){
+        req.session.professor =  req.body.login_account;
+        res.redirect('/user/professor');
+      }
+      else{
+        req.session.sysadmin =  req.body.login_account;
+        res.redirect('/user/sysadmin'); 
+      }
+    }
+  });
+});
+
+app.post("/fgt",urlencodedPsrser ,function(req,res,next) {
+  db.query('SELECT account, email, password, fgt_time FROM user_account_info WHERE account = ? AND email = ?', [req.body.fgt_account, req.body.fgt_email], function(err,rows){
+    if(err||rows[0]==null){
+      res.render("./user_action/index.ejs", {log_fail:'',fgt_success:'',fgt_fail:'請輸入正確的帳號和Eamil。'});
+    }
+    else{
+      var temp=  new Date();
+      var condition = 0;
+      if(rows[0].fgt_time!=null){
+        rows[0].fgt_time.setMinutes(rows[0].fgt_time.getMinutes()+10);
+        if (rows[0].fgt_time>temp){
+          condition=1;
+        }
+      }
+      if(condition===0){
+        db.query('UPDATE user_account_info SET fgt_time = ? WHERE account = ?', [temp, req.body.fgt_account], function (err1,rows1){
+          if(!err1){
+            var options = {
+              from: 'from140.138.144.152@gmail.com',//寄件者    
+              to: rows[0].email, //收件者
+              subject: '這是題庫系統發送的信件', // Subject line//主旨
+              text: 'your password is: '+rows[0].password, //純文字
+            };
+            transporter.sendMail(options, function(error, info){
+              if(error)
+                console.log(error);
+              else
+                console.log('訊息已經發送,'+rows[0].account +' 請至email查看。'); 
+            });
+            res.render("./user_action/index.ejs", {log_fail:'',fgt_success:'請至email查看!!! ' ,fgt_fail:''});
+          }    
+        });
+      }
+      else{
+        res.render("./user_action/index.ejs", {log_fail:'',fgt_success:'',fgt_fail:'操作太頻繁，請稍後再試。'});
+      } 
+    }
+  });
+});
+
+//-----------------sysadmin_page----------------------
+app.get("/user/sysadmin", auth_sysadmin, function(req, res){
+
+  db.query('SELECT * FROM user_account_info',function(err,rows,fields){
+    if(err) {
+      req.session.destroy();
+      res.redirect('/index');
+    }
+    else{
+      res.render("./sysadmin/index.ejs", {sysadmin:req.session.sysadmin,user:rows});
+    }
+  }); 
+});
+
+app.get("/user/sysadmin/class", auth_sysadmin, function(req, res){
+  // !!! class
+  db.query('SELECT * FROM user_account_info',function(err,rows,fields){
+    if(err) {
+      req.session.destroy();
+      res.redirect('/index');
+    }
+    else{
+      res.render("./sysadmin/class.ejs", {sysadmin:req.session.sysadmin,user:rows});
+    }
+  }); 
+});
+
+//-----------------professor_page----------------------
+app.get("/user/professor", auth_professor, function(req, res){
+  // !!!class
+  res.render("./professor/index.ejs",{class:"CS233A", professor:req.session.professor});
+});
+app.get("/user/professor/draw_up", auth_professor, function(req, res){  // OK 
+  db.query('SELECT * FROM professor_exam_file WHERE class_no = ?', ["CS233A"], function(err,rows){
+    res.render("./professor/draw_up.ejs", {class:"CS233A", professor:req.session.professor,datalist:rows});
+  });
+});
+app.get("/user/professor/test_form", auth_professor, function(req, res){  
+  db.query('SELECT * FROM professor_exam_file WHERE class_no = ?', ["CS233A"], function(err,rows){
+    res.render("./professor/test_form.ejs", {class:"CS233A", professor:req.session.professor,datalist:rows});
+  });
+});
+app.get("/user/professor/backup", auth_professor, function(req, res){
+  res.render("./professor/backup.ejs", {class:"CS233A", professor:req.session.professor});
+});
+app.get("/user/professor/grade", auth_professor, function(req, res){
+  res.render("./professor/grade.ejs", {class:"CS233A", professor:req.session.professor});
+});
+app.get("/user/professor/class", auth_professor, function(req, res){ // OK
+  db.query('SELECT * FROM professor_exam_info where account = ?', [req.session.professor],function(err,rows,fields){
+    res.render("./professor/class.ejs", {class:"CS233A", professor:req.session.professor,datalist:rows});
+  });
+});
+app.get("/user/professor/student", auth_professor, function(req, res){  // OK
+  // !!!class
+  db.query('SELECT * FROM  student_class_info where class_no = ?', ["CS233A"],function(err,rows,fields){
+    res.render("./professor/student.ejs", {class:"CS233A", professor:req.session.professor, datalist:rows[0]});
+  });
+});
+app.get("/user/professor/admin", auth_professor, function(req, res){
+  res.render("./professor/admin.ejs", {class:"CS233A", professor:req.session.professor});
+});
+
+app.post("/user/professor/main_exam",urlencodedPsrser, function(req, res){
+  console.log(req.body);
+  req.session.class=req.body.class_no;
+  req.session.exam=req.body.exam_folder;
+  if(req.body.page=="Exam"){
+    res.redirect("/user/professor")
+  }
+  else if (page == "Backup papper"){ 
+  
+  }
+  else if (page == "Draw up"){ //class
+  
+  }
+  else if (page == "Grade"){ // class
+  
+  }
+  else if (page == "Class"){ // class
+  
+  }
+  else if (page == "Student"){ // class
+  
+  }
+  else if (page == "Admin"){ // class
+  
+  }
+});
+
+
+
+//--------------------professor_class_action--------------------professor_class_action--------------------professor_class_action--------------------
+app.post("/professor/class/create",urlencodedPsrser ,function(req,res,next) {
+  //console.log(req.body);
+  const tempData = {
+    account:req.body.account,
+    class_no:req.body.class_no,
+    class_name:req.body.class_name,
+    exam_info:0,
+    times:0,
+  }
+  const tempData2 = {
+    class_no:req.body.class_no,
+    student_num:0,
+  }
+  db.query('INSERT INTO professor_exam_info SET ?', [tempData], function (err,rows){
+    if(err) console.log(err);
+    else console.log(tempData.class_no+" is newed success");
+  });
+  db.query('INSERT INTO student_class_info SET ?', [tempData2], function (err,rows){
+    if(err) console.log(err);
+    else console.log(tempData.class_no+" is newed success");
+  });
+});
+
+app.post("/professor/class/edit",urlencodedPsrser ,function(req,res,next) {
+  console.log(req.body);
+  const tempData = {
+    account:req.body.account,
+    class_no:req.body.class_no,
+    class_name:req.body.class_name,
+    exam_info:0,
+    times:0,
+  }
+  db.query('UPDATE professor_exam_info set ? WHERE class_no = ?', [tempData,req.body.class_no], function (err,rows){
+    if(err||rows[0==null])
+      console.log('edit '+req.body.class_no+' information error');
+    else{
+      console.log('edit '+req.body.class_no+' information success');
+    }
+  });
+});
+
+app.post("/professor/class/delete",urlencodedPsrser ,function(req,res,next) {
+  console.log(req.body);
+  db.query('DELETE FROM professor_exam_info WHERE class_no = ?', [req.body.class_no], function (err,rows){
+    if(err||rows[0==null])
+      console.log('delete error');
+    else{
+      console.log('delete success');
+    }
+  });
+  db.query('DELETE FROM student_class_info WHERE class_no = ?', [req.body.class_no], function (err,rows){
+    if(err||rows[0==null])
+      console.log('delete error');
+    else{
+      console.log('delete success');
+    }
+  });
+});
+
+
+//--------------------professor_student_action--------------------professor_student_action--------------------professor_student_action--------------------
+app.post("/professor/student/create",urlencodedPsrser ,function(req,res,next) {
+  var str = req.body.studentID;
+  var str_split=str.split("");
+  var times = 0;
+  str="";
+  var studentID_list = [];
+  
+  
+  for(var i = 0; i<str_split.length;i++){
+    if ('0'<=str_split[i]&&str_split[i]<='9'){
+      times++;
+      str+=str_split[i];
+      if(times == 7){
+        studentID_list.push(str);
+        str="";
+        times = 0;
+      }
+    }
+  }  
+  db.query('SELECT class_no, student_num FROM student_class_info', function(err,rows){
+    var max_length=0;
+    var num_i;
+    var j = 0;
+    for(var i = 0; i < rows.length ; i++){
+      if(rows[i]!=null&& max_length<rows[i].student_num){
+        max_length = rows[i].student_num;
+      }
+      //!!! class
+      if(rows[i].class_no=="CS233A")
+        num_i = rows[i].student_num ;
+    }
+    for (var i = 0; i < studentID_list.length; i++){
+      if(num_i + i + 1 > max_length){
+        db.query('ALTER TABLE student_class_info ADD student'+ (num_i + j + 1) +' VARCHAR(255)',function(err1,rows1){
+          if(err1) console.log(err1);
+          else{
+            db.query('UPDATE student_class_info SET student'+ (num_i + j + 1)  +' = ? WHERE class_no = ?',[studentID_list[j],"CS233A"],function(err2,rows2){
+              if(err2) console.log(err2);
+              j++;
+            });
+          }
+        });
+        sleep(500); 
+      }
+      else{
+        db.query('UPDATE student_class_info SET student'+ (num_i + j + 1)+' = ? WHERE class_no = ?',[studentID_list[j],"CS233A"],function(err1,rows1){
+          if(err1) console.log(err1);
+          j++;
+        });
+        sleep(500); 
+      }
+    }
+    //!!! class
+    db.query('UPDATE student_class_info SET student_num = ? WHERE class_no = ?',[studentID_list.length + num_i,"CS233A"],function(err1,rows1){
+      if(err1) console.log(err1);
+    });  
+  });
+  
+});
+app.post("/professor/student/delete",urlencodedPsrser ,function(req,res,next) {
+  //console.log(req.body);
+  var times = 0;
+  // !!!class
+  db.query('SELECT class_no, student_num FROM student_class_info', function(err,rows){
+    
+    db.query('UPDATE student_class_info SET student_num = ? WHERE class_no = ?',[rows[0].student_num-1,"CS233A"],function(err1,rows1){
+      if(err1) console.log(err1);
+    });
+    sleep(500);
+    db.query('SELECT * FROM student_class_info WHERE class_no = ?',["CS233A"],function(err1,rows1){
+      if(err1) console.log(err1);
+      var a = "student"+((rows[0].student_num).toString());
+      for(const key in rows1[0]){
+        if(rows1[0][key]==req.body.studentID && times == 0){
+          if(key != a) {
+            db.query('UPDATE student_class_info SET '+key+' = ? WHERE class_no = ?',[rows1[0][a],"CS233A"],function(err2,rows2){
+              if(err2) console.log(err2);
+            });
+            times++;
+          }
+          db.query('UPDATE student_class_info SET '+a+' = ? WHERE class_no = ?',[null,"CS233A"],function(err2,rows2){
+            if(err2) console.log(err2);
+          });
+          sleep(500);
+        }
+      }
+    });
+    sleep(500);
+    var max_length=0;
+    var num_i;
+    for(var i = 0; i < rows.length ; i++){
+      if(rows[i]!=null&& max_length<rows[i].student_num){
+        max_length = rows[i].student_num;
+        num_i = i;
+      }
+    }
+    if(rows[num_i].class_no == 'CS233A'){
+      var a = "student"+((rows[0].student_num).toString());
+      db.query('alter table student_class_info drop column '+a ,function(err1,rows){
+        if(err1) console.log(err1);
+      });
+    }
+  });
+});
+
+
+//--------------------professor_drawup_action--------------------professor_drawup_action--------------------professor_drawup_action--------------------
+app.post("/professor/draw_up/create",urlencodedPsrser ,function(req,res,next) {
+  console.log(req.body);
+  if(req.body.folder_name!=""){
+    db.query('INSERT INTO professor_exam_file SET ?', [{"account":req.session.professor,"class_no":req.body.class_no, "exam_file":req.body.folder_name}], function (err,rows){
+      if(err) console.log(err);
+    });
+    db.query('SELECT student_num FROM student_exam_info', function(err,rows){
+      if(!err&&rows[0]==null){
+        // !!! class
+        db.query('SELECT student_num FROM student_class_info where class_no = ?',["CS233A"], function(err1,rows1){
+          if(err1) console.log(err1);
+          var max_length=0;
+          for(var i = 0; i < rows.length ; i++){
+            if(rows[i]!=null&& max_length < rows[i].student_num){
+              max_length = rows[i].student_num;
+            }
+          }
+          if(rows1[0].student_num > max_length){
+            for(var i = max_length+1; i <= rows1[0].student_num; i++){
+              db.query('ALTER TABLE student_exam_info ADD student'+ i +' VARCHAR(1000)',function(err2,rows2){
+              });
+              sleep(500);
+            }
+          } 
+        });
+        sleep(500);
+      }
+    }); 
+    db.query('SELECT * FROM student_class_info where class_no = ?',["CS233A"], function(err,rows){
+      db.query('INSERT INTO student_exam_info (class_no, examfile, student_num, post_grade) VALUES ("'+req.body.class_no+'", "'+req.body.folder_name+'",  "'+rows[0].student_num+'", "'+0+'")', function (err1,rows1){
+        if(err1) console.log(err1);
+      });  
+      sleep(500);
+      for(const key in rows[0]){
+        if(key != "class_no" && key != "examfile" && key != "student_num" && key != "post_grade"){
+          var temp = rows[0][key] + "\n\n\n";
+          db.query('UPDATE student_exam_info SET '+key+' = ?', [temp], function(err1,rows1){
+            if(err1) console.log(err1);
+          });
+        }
+      }
+    })
+  }
+});
+app.post("/professor/draw_up/delete",urlencodedPsrser ,function(req,res,next) {
+  console.log(req.body);
+  db.query('DELETE FROM student_exam_info where class_no = ? AND examfile = ?',[req.body.class_no, req.body.exam_file], function(err,rows){
+    if(err) console.log(err);
+  });
+  db.query('DELETE FROM professor_exam_file where class_no = ? AND exam_file = ?',[req.body.class_no, req.body.exam_file], function(err,rows){
+    if(err) console.log(err);
+  });
+});

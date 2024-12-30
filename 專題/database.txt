@@ -1,0 +1,80 @@
+資料庫 itemBank_db
+
+----------user----------
+
+user_account_info
+  
+  account	unique not null
+  password	not null
+  email		unique not null
+  fgt_time	
+  authority	not null
+
+----------student----------
+
+student_class_info
+
+  class_no	unique not null
+  student_num	not null
+  student1	
+  student2
+  ......
+
+student_exam_info // fix
+
+  class_no	unique not null
+  examfile	not null
+  student_num	not null
+  post_grade	not null
+  
+  student1      ID\n url\n grade\n pdf
+  
+  student1_ID
+  student1_url
+  student1_grade
+  student1_pdf
+  student2
+  ......
+  
+(class_no) _ (exam_file)
+  
+  account --> studentID
+  question_num
+  quesrtion_url1
+  quesrtion_url2
+  quesrtion_url3
+  ...
+  grade
+  post_grade  --> 0 not post, 1 post
+  
+  
+
+
+----------professor-------------------
+
+professor_exam_info (class)
+
+  account	not null
+  class_no	unique not null
+  class_name	not null
+  exam_info	not null
+  exam_file		
+  times		not null
+
+professor_exam_file
+  
+  account       not null
+  class_no	not null
+  exam_file	not null
+
+----------sysadmin----------
+
+select CS233A_1.sID as sID,CS233A_1.grade as grade from CS233A_1 CS233A_1
+
+union
+
+select CS233A_2.sID as sID,CS233A_2.grade as grade from CS233A_2 CS233A_2
+
+union
+
+select CS233A_3.sID as sID,CS233A_3.grade as grade from CS233A_3 CS233A_3
