@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Webrtc Student index</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link href="https://cdn.datatables.net/1.12.0/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/dataTables.bootstrap5.min.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+  <link rel="stylesheet" href="/css/student.css"> 
+  <!--<script src="/js/test2.js" defer></script>-->
+   
+
+</head>
+  <a style="display:none;font-size:30vh;" id="studentItems" name="studentItems"><%= student %></a>
+  <a style="display:none;font-size:30vh;" id="examItems" name="examItems"><%= exam_file %></a>
+  <a style="display:none;font-size:30vh;" id="classItems" name="classItems"><%= class_no %></a>
+  <a style="display:none;font-size:30vh;" id="page" name="page"><%= page%></a>
+  <a style="display:none;font-size:30vh;" id="items" name="items"><%= student%></a>
+  <a style="display:none;font-size:30vh;" id="url" name="url"><%= form_url%></a>
+  <a style="display:none;font-size:30vh;" id="answer" name="answer"><%= answer%></a>
+  <a style="display:none;font-size:30vh;" id="now_question" name="url">1</a>
+<body class="h-100">
+<!-- Modal -->
+
+	<div class="modal fade" id="cheat"  data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog">
+		  <div class="modal-content">
+		    <div class="modal-header">
+		      <h5 class="modal-title" id="staticBackdropLabel">切換視窗!</h5>
+		    </div>
+		    <div class="modal-body">
+          <div class="form-group">
+            <label style="font-size:4vh;">離開了: <b><font id = "cheatTimeInterval" color = "red"></font></b>秒</label>
+          </div>
+        </div>
+		    <div class="modal-footer">
+		      <button type="button" id="cheat_wake"class="btn btn-primary" data-bs-dismiss="modal">確認</button>
+		    </div>
+		  </div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="notify"  data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog">
+		  <div class="modal-content">
+		    <div class="modal-header">
+		      <h5 class="modal-title" id="staticBackdropLabel">注意事項</h5>
+		    </div>
+		    <div class="modal-body">
+		      ...
+		    </div>
+		    <div class="modal-footer">
+		      <button type="button" id="notify_wake"class="btn btn-primary" data-bs-dismiss="modal">確認</button>
+		    </div>
+		  </div>
+		</div>
+	</div>
+  
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">answer</h5>
+          <button type="button" class="btn-close"  data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="position:relative;z-index:10">
+          <div align="center">
+          	<button style="margin:2vh;display:none" class="custom-btn btn-2" id="one_solution" onclick="one_solution();">唯一解</button>
+          	<button style="margin:2vh;display:none" class="custom-btn btn-2" id="multiple_solution" onclick="multiple_solution();">多組解</button>
+          	<button style="margin:2vh;display:none" class="custom-btn btn-2" id="no_solution" onclick="no_solution()">無解</button>
+          	<br>
+          	<h5 id="free_variable" style="display:none">free variable個數:
+          	<select class="custom-btn btn-2" style="width:10vh;height:5vh;" id="choice_free_variable">
+		        	<option style="background-color: rgb(0, 0, 0);" value='1'>1</option>
+		        	<option style="background-color: rgb(0, 0, 0);" value='2'>2</option>
+		        	<option style="background-color: rgb(0, 0, 0);" value='3'>3</option>
+            </select>
+            </h5>
+          	<!--
+          	<br>
+            <select class="btn btn-dark" id="GS_answer" style="width:20vh;display:none" onchange="GS_answer()">
+		          <option value="0">type of answer</option>
+				      <option value="1">one solution</option>
+				      <option value="2">multiple solution</option>
+				      <option value="3">no solution</option>
+            </select>
+            <select class="btn btn-dark" id="Matrix_answer" style="width:20vh;display:none" onchange="Matrix_answer()">
+		          <option value="0">type of answer</option>
+				      <option value="1">one solution</option>
+				      <option value="2">no solution</option>
+            </select>	
+            </div>
+            
+            </div>
+            -->
+            <div id="transition_matrix_type4" style="display:none">
+            	<div style='height:3.5vh;margin:2vh'>
+            		<h3>nullity(T)=
+		          	<input id="type4_nullity" type='text' value='0' name='martix-input'  style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'></h3>
+		          </div>
+		          <div style='height:3.5vh;margin:2vh'>	
+		          	<h3>rank(T)=
+		          	<input id="type4_rank" type='text' value='0' name='martix-input'   style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'></h3>
+		          </div>
+		          <div style='height:3.5vh;margin:2vh'>
+		          	<h3>type of T:
+		          	<select class="btn btn-dark" id="type4_ans" style="width:20vh;"">
+		          	<option value="one-to-one and onto">one-to-one and onto</option>
+				      	<option value='one-to-one'>one-to-one</option>
+				      	<option value='onto'>onto</option>
+				      	<option value='neither'>neither</option>
+				      	</select></h3>
+		        	</div>
+            </div>
+            <table id="your_answer" style="display:none;margin:2vh">
+            	<tr>
+            		<td>
+            			<h1>你的答案:</h1>
+								</td>
+            		<td><div id="final_answer"></div></td>
+            	</tr>
+            </table>
+            <table style="margin:2vh">
+							<tr>
+								<td style="margin:2vh">
+									<h3>上次作答紀錄:</h3>
+								</td>
+								<td style="margin:2vh">
+									<h3><div id="previous_answer"></div></h3>
+								</td>
+							</tr>
+            </table>
+            </div>
+            <br>
+            <button type="button"  class="custom-btn btn-2" style="width:10vh;display:none;float:right" id="save_answer" onclick="save_answer()">
+            	save
+            </button>
+           	<a style="display:none" id="wait_send">傳送中</a>
+          </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <svg style="display:none;">
+  
+  <symbol id="down" viewBox="0 0 16 16">
+    <polygon points="3.81 4.38 8 8.57 12.19 4.38 13.71 5.91 8 11.62 2.29 5.91 3.81 4.38" />
+  </symbol>
+  <symbol id="users" viewBox="0 0 16 16">
+    <path d="M8,0a8,8,0,1,0,8,8A8,8,0,0,0,8,0ZM8,15a7,7,0,0,1-5.19-2.32,2.71,2.71,0,0,1,1.7-1,13.11,13.11,0,0,0,1.29-.28,2.32,2.32,0,0,0,.94-.34,1.17,1.17,0,0,0-.27-.7h0A3.61,3.61,0,0,1,5.15,7.49,3.18,3.18,0,0,1,8,4.07a3.18,3.18,0,0,1,2.86,3.42,3.6,3.6,0,0,1-1.32,2.88h0a1.13,1.13,0,0,0-.27.69,2.68,2.68,0,0,0,.93.31,10.81,10.81,0,0,0,1.28.23,2.63,2.63,0,0,1,1.78,1A7,7,0,0,1,8,15Z" />
+  </symbol>
+  <symbol version="1.1" id="login_icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 122.88" style="enable-background:new 0 0 122.88 122.88" xml:space="preserve"><style type="text/css"><![CDATA[
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#EF4136;}
+	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+]]></style><g><path class="st0" d="M61.44,0c33.93,0,61.44,27.51,61.44,61.44c0,33.93-27.51,61.44-61.44,61.44C27.51,122.88,0,95.37,0,61.44 C0,27.51,27.51,0,61.44,0L61.44,0z"/><path class="st1" d="M79.16,46.24c-2.32-2.68-2.03-6.73,0.65-9.05s6.73-2.03,9.05,0.65c2.79,3.23,5.01,6.96,6.53,11.04 c1.48,3.98,2.29,8.23,2.29,12.62c0,10.01-4.06,19.07-10.62,25.63S71.45,97.75,61.44,97.75c-10.01,0-19.07-4.06-25.63-10.62 S25.2,71.51,25.2,61.5c0-4.32,0.78-8.5,2.2-12.4c1.46-4,3.62-7.69,6.33-10.91c2.28-2.71,6.32-3.06,9.03-0.78 c2.71,2.28,3.06,6.32,0.78,9.03c-1.73,2.06-3.12,4.43-4.07,7.04c-0.9,2.47-1.39,5.17-1.39,8.02c0,6.45,2.62,12.3,6.84,16.53 c4.23,4.23,10.07,6.84,16.52,6.84c6.45,0,12.3-2.62,16.52-6.84s6.85-10.07,6.85-16.53c0-2.91-0.51-5.65-1.43-8.14 C82.4,50.74,80.97,48.33,79.16,46.24L79.16,46.24z"/><path class="st1" d="M67.88,49.12c0,3.55-2.88,6.44-6.44,6.44c-3.55,0-6.44-2.88-6.44-6.44V29.93c0-3.55,2.88-6.44,6.44-6.44 c3.55,0,6.44,2.88,6.44,6.44V49.12L67.88,49.12z"/></g>
+  </symbol>
+   
+
+</svg>
+<header class="page-header">
+  <nav>
+    <a href="#0"  class="logo" style= "margin-left:5px;">
+      <img src ="https://portalx.yzu.edu.tw/PortalSocialVB/Images/Login/logo.png" width="200px">
+    </a>
+    <button class="toggle-mob-menu" aria-expanded="false" aria-label="open menu" id = "button_item">
+      <svg width="20" height="20" aria-hidden="true">
+        <use xlink:href="#down"></use>
+      </svg>
+    </button>
+    <ul class="admin-menu" style="margin-top: 0px;padding-left: 0px;" id = "ul_item">
+      <li class="menu-heading">
+        <h3 style="font-size:3vh;">student</h3>
+      </li>
+      <li class="menu-heading">
+        <h3 style="font-size:2.5vh;" >exam</h3>
+      </li>
+      <li>
+          <% if (page=="Form" ){%> <a href="/user/student" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/student">
+              <% } %>
+              <span style="font-size:2.3vh;">Exam papper</span>
+            </a>
+        </li>
+        <div class="switch">
+          <input type="checkbox" id="mode" checked>
+          <label for="mode">
+            <span></span>
+            <span style="font-size:2.3vh;">Dark</span>
+          </label>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</header>
+<section class="page-content">
+  <section class="search-and-user">
+    <div class="admin-profile">
+      <svg>
+        <use xlink:href="#users"></use>
+      </svg>
+      <span style="font-size:3vh;color:white;font-weight:bold;" id = "studentName">&nbsp <%= student %>&nbsp &nbsp </span>
+    </div>  
+  </section> 
+    <div id="question_nun" style="text-align:center;">
+    	<div style="margin:2vh">
+				<h1>第<select class="btn" style="width:auto;height:auto;border-style:groove;border-color:#000000;" id="choice_question" onchange="choice_question()">
+				</select>題</h1>
+    	</div>
+		  <div> 
+				<button id="previous_question" style="display:none" type="button" class="btn btn-dark"  onclick="previous_question()">上一題</button>
+				<button id="answer_question" type="button" class="btn btn-dark"   data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="answer_question()">作答</button>
+				<button id="next_question" style="display" type="button" class="btn btn-dark" onclick="next_question()">下一題</button>
+				<button id="send_answer" style="display:none" type="button" class="btn btn-dark" onclick="send_answer()">送出答案</button>
+				<a style="display:none" id="wait_answer_send">傳送中</a>
+			</div>
+			<iframe id="iframe" src="" style="width:100%;height:100vh;" value="">載入中…
+			</iframe>
+    </div>
+    <a id="finish_test" style="display:none"><%= student %>答案送出成功，出示此畫面給監考老師確認後才可離場!!!</a>
+</section>
+<script>
+	const button = document.getElementById("notify");
+  if ('wakeLock' in navigator) {
+    let lock;
+    button.addEventListener('click', async () => {
+      if (lock) {
+        console.log('release');
+        lock.release();
+        return;
+      }
+      try {
+        lock = await navigator.wakeLock.request("screen");
+        console.log('Acquired');
+        lock.addEventListener('release', () => {
+        	console.log('Released');
+          lock = null;
+        });
+      } catch (e) {
+      	console.log(e);
+      }
+    });
+  } else {
+    console.log('Not supported');
+  }
+  const button2 = document.getElementById("cheat");
+  if ('wakeLock' in navigator) {
+    let lock;
+    button2.addEventListener('click', async () => {
+      if (lock) {
+        console.log('release');
+        lock.release();
+        return;
+      }
+      try {
+        lock = await navigator.wakeLock.request("screen");
+        console.log('Acquired');
+        lock.addEventListener('release', () => {
+        	console.log('Released');
+          lock = null;
+        });
+      } catch (e) {
+      	console.log(e);
+      }
+    });
+  } else {
+    console.log('Not supported');
+  }
+	var form_url;
+	var previous_answer;
+	var question_url=[];
+	var question_type=[];
+	var question_size=[];
+	var final_send_answer=[];
+	var final_step_answer=[];
+	var total_number ;
+	var letter = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p'];
+	var free_variable_letter = ['s','t','v'];
+	var now_status = 1;
+	window.onload = test_onload;
+	function previous_question(){
+		document.getElementById('send_answer').style.display="none";
+		var now_question = parseInt(document.getElementById('now_question').innerHTML);
+		now_question-=1;
+		document.getElementById('now_question').innerHTML = now_question;
+		document.getElementById('iframe').src=question_url[now_question-1]+"?embedded=false";
+		if(now_question==1){
+			document.getElementById('previous_question').style.display="none";
+		}
+		if(document.getElementById('next_question').style.display=="none"){
+			document.getElementById('next_question').style.display="";
+		}
+		document.getElementById("choice_question").value=now_question;
+	}
+	function next_question(){
+		var now_question = parseInt(document.getElementById('now_question').innerHTML);
+		now_question+=1;
+		document.getElementById('now_question').innerHTML = now_question;
+		document.getElementById('iframe').src=question_url[now_question-1]+"?embedded=false";
+		if(now_question==question_url.length){
+			document.getElementById('next_question').style.display="none";
+			document.getElementById('send_answer').style.display="";
+		}
+		else{
+			document.getElementById('send_answer').style.display="none";
+		}
+		if(document.getElementById('previous_question').style.display=="none"){
+			document.getElementById('previous_question').style.display="";
+		}
+		document.getElementById("choice_question").value=now_question;
+	}
+	function choice_question(){
+		var value = parseInt(document.getElementById("choice_question").value);
+		document.getElementById("now_question").innerHTML=value;
+		document.getElementById('iframe').src=question_url[value-1]+"?embedded=false";
+		document.getElementById("previous_question").style.display="";
+		document.getElementById("next_question").style.display="";
+		document.getElementById("send_answer").style.display="none";
+		if(value==1){
+			document.getElementById("previous_question").style.display="none";
+		}
+		else if(value==question_url.length){
+			document.getElementById("next_question").style.display="none";
+			document.getElementById("send_answer").style.display="";
+		}
+	}
+	function test_onload(){
+		form_url = document.getElementById('url').innerHTML.split(";");
+		previous_answer = document.getElementById('answer').innerHTML.split("!!!");
+		console.log(form_url);
+		var txt="";
+		for(var i=0;i<form_url.length;i++){
+			var str = form_url[i].split(',');
+			question_url.push(str[0]);
+			question_size.push(str[1]);
+			question_type.push(str[2]);
+			txt+="<option style='text-align:center' value="+(i+1)+">"+(i+1)+"</option>";
+		}
+		document.getElementById('choice_question').innerHTML=txt;
+		if(form_url.length==1){
+			document.getElementById("next_question").style.display="none";
+			document.getElementById("send_answer").style.display="";
+		}
+		console.log(question_url)
+		console.log(question_size)
+		console.log(question_type)
+		document.getElementById('iframe').src=question_url[0]+"?embedded=false";
+		document.getElementById('now_question').innerHTML=1;
+		total_number = question_url.length-1;
+		
+		var txt="";
+		var txt1="<option value='all'>all question</option>";
+		var txt2="<option value='all'>all answer</option>";
+		for(var i=1;i<=total_number;i++){
+			txt+="<div style='none' id="+"answer_question"+i+">"+answer[i-1]+"</div>";
+			txt1+="<option value="+i+">第"+i+"題</option>";                                                  
+			txt2+="<option value="+i+">第"+i+"題</option>";
+		}
+		txt1+="<option value='show'>show answer</option>";
+		//document.getElementById('question').innerHTML=txt1;
+		//document.getElementById('show_answer').innerHTML=txt2;
+		var myModal = new bootstrap.Modal(document.getElementById('notify'), {
+		keyboard: false
+		});
+		myModal.show();
+	}
+	document.getElementById("choice_free_variable").onchange = function(){
+    var value = document.getElementById("choice_free_variable").value;
+    document.getElementById("free_variable").style.display="";
+    generate_answer(value);
+ 	};
+	function one_solution(){
+		generate_answer(0);
+		document.getElementById("free_variable").style.display="none";
+	}
+	function multiple_solution(){
+		document.getElementById("choice_free_variable").value="1";
+		document.getElementById("free_variable").style.display="";
+		generate_answer(1);
+	}
+	function no_solution(){
+		document.getElementById("choice_free_variable").value="1";
+		document.getElementById("free_variable").style.display="none";
+		document.getElementById("your_answer").style.display="";
+		document.getElementById("final_answer").innerHTML="<h1>無解</h1>";
+		document.getElementById("save_answer").style.display="";
+	}
+	function generate_answer(free_variable){
+		document.getElementById("save_answer").style.display="";
+		var num = parseInt(document.getElementById("now_question").innerHTML);
+		var type = question_type[num-1];
+		var size = question_size[num-1];
+		var txt="";
+		if(type=="question_GS"){
+			for(var i=0;i<size[1]-1;i++){
+				txt+="<div style='margin:1vh'><td style='height:3.5vh;margin:3.5vh'>"+letter[i]+"=<input type='text' value='0' name='martix-input' class='question"+num+"_answer' style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'></td>";
+				for(var j=0;j<free_variable;j++){
+					txt+="<td style='height:3.5vh'>+"+"<input type='text' value='0' name='martix-input'  class='question"+num+"_answer' style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>"+free_variable_letter[j]+"</td>";
+				}
+				txt+="<br></div>";
+			}
+		}
+		else if(type=="Inverse"||type=="Involutory_matrix") {
+			txt="<table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+			for(var i=0;i<size[0];i++){
+				var style=""
+				txt+="<tr>";
+				if(i==0){
+					style+='border-top: 3px solid #000000;';
+				}
+				if(i==size[0]-1){
+					style+='border-bottom: 3px solid #000000;';
+				}
+				txt+="<td style='"+style+";height:6.1vh'>&nbsp&nbsp&nbsp</td>";
+				for(var j=0;j<size[1];j++){
+					txt+="<td style='height:3.5vh'>&emsp;<input type='text' value='0' name='martix-input'  class='question"+num+"_answer' style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'></td>";
+				}
+				txt+="<td style='"+style+"'>&emsp;</td>";
+				txt+="</tr>";
+			}
+			txt+="</table>"
+		}
+		document.getElementById("final_answer").innerHTML=txt;	
+		document.getElementById("your_answer").style.display="";
+	}
+	function answer_question(){
+		show_answer();
+		document.getElementById("free_variable").value=0;
+		document.getElementById("one_solution").style.display="none";
+			document.getElementById("multiple_solution").style.display="none";
+			document.getElementById("no_solution").style.display="none";
+		document.getElementById("free_variable").style.display="none";
+		document.getElementById("save_answer").style.display="none";
+		document.getElementById("your_answer").style.display="none";
+		document.getElementById("transition_matrix_type4").style.display="none";
+		var value = parseInt(document.getElementById("now_question").innerHTML)-1;
+		if(question_type[value]=="question_GS"){
+			document.getElementById("one_solution").style.display="";
+			document.getElementById("multiple_solution").style.display="";
+			document.getElementById("no_solution").style.display="";
+		}
+		else if(question_type[value]=="Involutory_matrix"||question_type[value]=="Inverse"){
+			document.getElementById("one_solution").style.display="";
+			document.getElementById("no_solution").style.display="";
+		}
+		else if(question_type[value]=="transition_matrix4"){
+			document.getElementById("transition_matrix_type4").style.display="";
+			document.getElementById("type4_nullity").value='0';
+			document.getElementById("type4_rank").value='0';
+			document.getElementById("type4_ans").value='one-to-one and onto';
+			document.getElementById("save_answer").style.display="";
+		}
+		else{
+			var txt = generate_matrix(question_size[value][0],value+1,"A&nbsp;");
+			if(question_type[value]=="transition_matrix2"){
+				txt += "<br>"+generate_matrix(question_size[value][0],value+1,"A<sup>-1</sup>");
+			}
+			document.getElementById("final_answer").innerHTML=txt;
+			document.getElementById("final_answer").style.display="";
+			document.getElementById("save_answer").style.display="";
+		}
+	}
+	function generate_matrix(num,value,symbol){
+		var col = num;
+		var row = num;
+		var txt="<table><tr><th style='width:8vh'><h3>"+symbol+"=&nbsp</h3></th><th><table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+		for(var i=0;i<col;i++){
+	     	var style="";
+	     	txt+="<tr>";
+	     	if(i==0){
+					style+='border-top: 3px solid #000000;';
+	     	  }
+	     	if(i==col-1){
+	     	  style+='border-bottom: 3px solid #000000;';
+	     	}
+	     	txt+="<td style='"+style+";height:6.1vh'>&nbsp&nbsp&nbsp</td>";
+	     	for(var j=0;j<row;j++){
+	     		if(j!=row-1){
+	     	   txt+="<td style='height:3.5vh;border-right: 3spx solid #000000;'>&nbsp&nbsp&nbsp<input type='text' value='0' name='martix-input'   class='question"+value+"_answer' style='font-size:2.5vh;text-align:center;width:6vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>&nbsp&nbsp</td>"
+	     	   }
+	     	  else{
+	     	  	txt+="<td>&nbsp&nbsp<input type='text' value=0 name='martix-input'   class='question"+value+"_answer' style='font-size:2.5vh;text-align:center;width:6vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>&nbsp&nbsp</td>"
+					 	txt+="<td style='"+style+"'>&nbsp&nbsp&nbsp</td>";
+					 	txt+="</tr></th></tr>";
+	     	  }
+	     	}
+	     }
+	     txt+="</table></table>";
+	     document.getElementById("your_answer").style.display="";
+	     return txt;
+	}
+	function Matrix_answer(){
+		document.getElementById("final_answer").style.display="none";
+		document.getElementById("send_answer").style.display="none";
+		document.getElementById("save_answer").style.display="none";
+		var type = document.getElementById("Matrix_answer").value;
+		if(type=='1'){
+			generate_answer();
+			document.getElementById("save_answer").style.display="";
+		}
+		else if(type=="2"){
+		document.getElementById('final_answer').innerHTML='no answer';
+		document.getElementById("save_answer").style.display="";
+		}
+	}
+	function GS_answer(){
+		document.getElementById("final_answer").style.display="none";
+		document.getElementById("free_variable").value=0;
+		document.getElementById("save_answer").style.display="none";
+		document.getElementById("free_variable").style.display="none";
+		var type = document.getElementById("GS_answer").value;
+		if(type=='1'){
+			generate_answer();
+			document.getElementById("save_answer").style.display="";
+		}
+		else if(type=='2'){
+			document.getElementById("free_variable").style.display="";
+		}
+		else if(type=="3"){
+		document.getElementById('final_answer').innerHTML='no answer';
+		document.getElementById("save_answer").style.display="";
+		}
+	}
+	function save_answer(){
+		var num = parseInt(document.getElementById("now_question").innerHTML)-1;
+		var result;
+		if(previous_answer[num]!="null"){
+			result = confirm("已有答案，是否要繼續?");
+		}
+		if(result||previous_answer[num]=="null"){
+			var size = question_size[num];
+			var answer_txt ="";
+			var save_answer = document.getElementsByClassName("question"+(num+1)+"_answer");
+			var free_variable = document.getElementById("choice_free_variable").value;
+			if(document.getElementById("free_variable").style.display=="none"){
+				free_variable=0;
+			}
+			if(document.getElementById("final_answer").innerHTML=="<h1>無解</h1>"){
+				answer_txt="no answer";
+			}
+			else if(question_type[num]=="question_GS"){
+					for(var i=0;i<size[0];i++){
+						answer_txt+=save_answer[i*free_variable+i].value;
+						for(var j=0;j<free_variable;j++){
+							answer_txt+=",";
+							if(save_answer[i*free_variable+j+i].value>=0){
+								answer_txt+=save_answer[i*free_variable+j+1+i].value+free_variable_letter[j];
+							}
+							else if(save_answer[i*free_variable+j+i+1].value<0){
+								answer_txt+=save_answer[i*free_variable+j+1+i].value+free_variable_letter[j];
+							}
+						}
+						if(i!=size[0]-1){
+								answer_txt+=";"
+							}
+					}
+			}
+			else if(question_type[num]!="transition_matrix4"){
+				console.log(save_answer);
+				for(var i=0;i<size[0];i++){
+					for(var j=0;j<size[1];j++){
+						answer_txt+=save_answer[i*size[1]+j].value;
+							if(j!=size[1]-1){
+								answer_txt+=",";
+							}
+					}
+					if(i!=size[0]-1){
+						answer_txt+=";"
+					}
+				}
+				if(question_type[num]=="transition_matrix2"){
+					answer_txt+="+++";
+					for(var i=0;i<size[0];i++){
+						for(var j=0;j<size[1];j++){
+							answer_txt+=save_answer[size[0]*size[1]+i*size[1]+j].value;
+							if(j!=size[1]-1){
+								answer_txt+=","
+							}
+						}
+						if(i!=size[0]-1){
+							answer_txt+=";"
+						}
+					}
+				}
+			}
+			else{
+				var rank = document.getElementById('type4_rank').value;
+				var nullity = document.getElementById('type4_nullity').value;
+				var ans = document.getElementById('type4_ans').value;
+				answer_txt=nullity+","+rank+","+ans;
+			}
+			previous_answer[num]=answer_txt;
+			console.log(previous_answer[num])
+			$.ajax({
+				url: 'https://140.138.144.121:1447/user/student/save_answer',
+				type: 'post',
+				data: {
+					"question_num":(num+1),
+				  "answer":answer_txt,
+				},
+				success: function (data) {
+					alert("儲存成功");
+					show_answer();
+				},
+			});
+		}
+	}
+	function show_answer(){
+		var num = parseInt(document.getElementById("now_question").innerHTML);
+		var save_answer = previous_answer[num-1];
+		if(save_answer=="null"){
+			txt="無紀錄";
+			document.getElementById('previous_answer').innerHTML=txt;
+		}
+		else{
+			var txt =""
+			if(save_answer=="no answer"){
+				txt="<h1>無解</h1>";
+			}
+			else if(question_type[num-1]=="question_GS"){
+				var txt="";
+				console.log(save_answer);
+				var part = save_answer.split(';'); 
+				for(var i=0;i<part.length;i++){
+					var element = part[i].split(',');
+					console.log(element)
+					txt+="<td>"+letter[i]+"=";
+					for(var j=0;j<element.length;j++){
+						if(j==0){
+								txt+=element[j];
+						}
+						else if(element[j][0]!="-"){
+							txt+="+"+element[j];
+						}
+						else{
+							txt+=element[j];
+						}
+					}
+					txt+="</td><br>";
+				}
+			}
+			else if(question_type[num-1]!="transition_matrix4"){
+				var txt="<table style='margin:2vh'><tr><th style='width:8vh'><h3>A=&nbsp</h3></th><th><table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+				var part_answer = save_answer;
+				part_answer = part_answer.split('+++')
+				var part = part_answer[0].split(';');
+				console.log(save_answer)
+				for(var i=0;i<part.length;i++){
+					var element = part[i].split(',');
+					var style=""
+					if(i==0){
+						style+='border-top: 3px solid #000000;';
+				 	}
+				 	if(i==part.length-1){
+				 	  style+='border-bottom: 3px solid #000000;';
+				 	}
+					txt+="<tr><td style='"+style+";height:6.1vh'>&emsp;</td>";
+					for(var j=0;j<element.length;j++){
+						txt+="<td><h2>"+element[j];
+						if(j!=element.length-1){
+							txt+="&emsp;";
+						}
+						txt+="<h2></td>";
+					}
+					txt+="<td style='"+style+"'>&emsp;</td>";
+					txt+="</tr>"
+				}
+				txt+="</th></table></table>";
+				if(question_type[num-1]=="transition_matrix2"){
+					var part = part_answer[1].split(';'); 
+					txt+="<table style='margin:2vh'><tr><th style='width:8vh'><h3>A<sup>-1</sup>=&nbsp</h3></th><th><table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+					for(var i=0;i<part.length;i++){
+						var element = part[i].split(',');
+						var style=""
+						if(i==0){
+							style+='border-top: 3px solid #000000;';
+						}
+						if(i==part.length-1){
+							style+='border-bottom: 3px solid #000000;';
+						}
+						txt+="<tr><td style='"+style+";height:6.1vh'>&emsp;</td>";
+						for(var j=0;j<element.length;j++){
+							txt+="<td><h2>"+element[j];
+							if(j!=element.length-1){
+								txt+="&emsp;";
+							}
+							txt+="<h2></td>";
+						}
+						txt+="<td style='"+style+"'>&emsp;</td>";
+						txt+="</tr>"
+					}
+					txt+="</th></table></table>";
+				}
+			}
+			else{
+				var part = save_answer.split(','); 
+				var txt="</td><h4>nullity(T)="+part[0]+"<br>rank(T)="+part[1]+"<br>type of T="+part[2]+"</h4>";
+			}
+			document.getElementById('previous_answer').innerHTML=txt;
+		}
+		document.getElementById('previous_answer').style.display="";
+	}
+	function save_answer_wait(){
+      var refresh=2000; // Refresh rate in milli seconds
+      mytime=setTimeout('wait_to_send()',refresh)
+  }
+  function send_answer_wait(){
+      var refresh=2000; // Refresh rate in milli seconds
+      mytime=setTimeout('wait_answer_to_send()',refresh)
+  }
+	function wait_to_send(){
+		if(document.getElementById('wait_send').innerHTML == "傳送中"){
+			document.getElementById('wait_send').innerHTML = "傳送中.";
+		}
+    else if(document.getElementById('wait_send').innerHTML == "傳送中."){
+    	document.getElementById('wait_send').innerHTML = "傳送中..";
+    }
+    else if(document.getElementById('wait_send').innerHTML == "傳送中.."){
+    	document.getElementById('wait_send').innerHTML = "傳送中...";
+    }
+    else if(document.getElementById('wait_send').innerHTML == "傳送中..."){
+    	document.getElementById('wait_send').innerHTML = "傳送中";
+    }
+     save_answer_wait();
+	}
+	function wait_answer_to_send(){
+    	if(document.getElementById('wait_answer_send').innerHTML == "傳送中"){
+    		document.getElementById('wait_answer_send').innerHTML = "傳送中.";
+    	}
+    	else if(document.getElementById('wait_answer_send').innerHTML == "傳送中."){
+    		document.getElementById('wait_answer_send').innerHTML = "傳送中..";
+    	}
+    	else if(document.getElementById('wait_answer_send').innerHTML == "傳送中.."){
+    		document.getElementById('wait_answer_send').innerHTML = "傳送中...";
+    	}
+    	else if(document.getElementById('wait_answer_send').innerHTML == "傳送中..."){
+    		document.getElementById('wait_answer_send').innerHTML = "傳送中";
+    	}
+      send_answer_wait();
+    }
+	function send_answer(){
+		var result = confirm("是否確定送出答案?");
+		if(result){
+			now_status = 0;
+			document.getElementById('wait_answer_send').style.display="";
+			var class_no = document.getElementById('classItems').innerHTML;
+			var exam_file	= document.getElementById('examItems').innerHTML;
+			var student_id = document.getElementById('studentItems').innerHTML;
+			var answer ="";
+			for(var i=0;i<question_url.length;i++){
+				answer+=previous_answer[i];
+				if(i!=question_url.length-1){
+					answer+="---";
+				}
+			}
+			document.getElementById('wait_send').style.display="";
+			wait_answer_to_send();
+			console.log(class_no+"_"+exam_file);
+			console.log(student_id);
+			console.log(answer);
+			$.ajax({
+				    url: 'https://script.google.com/macros/s/AKfycbxvdahEQE02NB1BbbPU5ecbNlMnb42XXCIyDJSbV78_XI9suHzrqHrY-7V1rqqut44N/exec',
+				    type: 'post',
+				    data: {
+				      "send_info":"save_answer",
+				      "folder_name":class_no+"_"+exam_file,
+				      "student_id":student_id,
+				      "answer":answer,
+				    },
+				    success: function (data) {
+				    	document.getElementById('wait_answer_send').style.display="none";
+							logout();
+							document.getElementById("finish_test").style.display="";
+							document.getElementById("question_nun").style.display="none";
+							document.getElementById("previous_question").style.display="none";
+							document.getElementById("answer_question").style.display="none";
+							document.getElementById("next_question").style.display="none";
+							document.getElementById("send_answer").style.display="none";
+							console.log(document.getElementById('classItems').innerHTML)
+							console.log(document.getElementById('examItems').innerHTML)
+							socket.emit('student_finish_test',{
+                class_no: document.getElementById('classItems').innerHTML,
+                exam_file: document.getElementById('examItems').innerHTML,
+                student:student_id,
+              });
+				    },
+		   	 });
+    }
+	}
+function logout(){
+	$.ajax({
+		url: 'https://140.138.144.121:1447/logout',
+		type: 'post',
+		data: {
+		},
+	});
+}
+</script>
+ <script>
+    window.addEventListener('resize', re_resize);
+    function re_resize(){
+      var width;
+      //alert(document.documentElement.scrollWidth);
+      const num = document.documentElement.scrollWidth;
+      //alert(typeof(num));
+      if(document.documentElement.scrollWidth > 896){
+        document.getElementById('studentName').style.color= 'black';
+        document.getElementById('button_item').hidden= false;
+        document.getElementById('ul_item').hidden= false;
+      }
+      else {
+        document.getElementById('studentName').style.color= 'white';
+        document.getElementById('button_item').hidden= true;
+        document.getElementById('ul_item').hidden= true;
+      }
+    }
+    const mediaQuery = window.matchMedia('(max-width: 896px)');
+    mediaQuery.addListener(handleDeviceChange);
+    var width = $("#width_div").width();
+    function handleDeviceChange(e) {
+      if (mediaQuery.matches) {  
+        document.getElementById('studentName').style.color= 'white';
+        document.getElementById('button_item').hidden= true;
+        document.getElementById('ul_item').hidden= true;
+      }
+      else{
+         document.getElementById('studentName').style.color= 'black';
+         document.getElementById('button_item').hidden= false;
+         document.getElementById('ul_item').hidden= false;
+      }
+    }
+    handleDeviceChange(mediaQuery);
+    const html = document.documentElement;
+    const body = document.body;
+    const menuLinks = document.querySelectorAll(".admin-menu a");
+    const collapseBtn = document.querySelector(".admin-menu .collapse-btn");
+    const toggleMobileMenu = document.querySelector(".toggle-mob-menu");
+    const switchInput = document.querySelector(".switch input");
+    const switchLabel = document.querySelector(".switch label");
+    const switchLabelText = switchLabel.querySelector("span:last-child");
+    const collapsedClass = "collapsed";
+    const lightModeClass = "light-mode";
+    const str = document.getElementById('page').innerText;
+    toggleMobileMenu.addEventListener("click", function () {
+      body.classList.toggle("mob-menu-opened");
+      this.getAttribute("aria-expanded") == "true"
+        ? this.setAttribute("aria-expanded", "false")
+        : this.setAttribute("aria-expanded", "true");
+      this.getAttribute("aria-label") == "open menu"
+        ? this.setAttribute("aria-label", "close menu")
+        : this.setAttribute("aria-label", "open menu");
+    });
+    if (localStorage.getItem("dark-mode") === "false") {
+      html.classList.add(lightModeClass);
+      switchInput.checked = false;
+      switchLabelText.textContent = "Light";
+    }
+    switchInput.addEventListener("input", function () {
+      html.classList.toggle(lightModeClass);
+      if (html.classList.contains(lightModeClass)) {
+        switchLabelText.textContent = "Light";
+        localStorage.setItem("dark-mode", "false");
+        document.getElementById(str).style.backgroundColor = "#d8deec";
+        document.getElementById(str).style.color = "black";
+      } else {
+        switchLabelText.textContent = "Dark";
+        localStorage.setItem("dark-mode", "true");
+        document.getElementById(str).style.backgroundColor = "#526283";
+        document.getElementById(str).style.color = "white";
+      }
+    });
+  </script>
+  <script>
+    let socket = io.connect();
+    var student = document.getElementById('studentItems').innerHTML;
+    var class_no = document.getElementById('classItems').innerHTML;
+    var exam = document.getElementById('examItems').innerHTML;
+    var myModal = new bootstrap.Modal(document.getElementById('cheat'), {
+      keyboard: false
+    });
+    var timeLeave = new Date(), timeBack = new Date();
+    document.onvisibilitychange = function() {
+      switch(document.visibilityState) {
+        case 'hidden':
+          timeLeave = new Date();
+          break;
+        case 'visible':       
+        	if(now_status == 1){
+		        socket.emit('student-cheat',{
+		          student: student,
+		          class_no: class_no,
+		          exam_file:exam
+		        });
+		        timeBack = new Date();      	
+		        document.getElementById("cheatTimeInterval").innerText = ( Math.round ((timeBack.getTime()-timeLeave.getTime())/1000)).toString();
+		        myModal.show();
+		        break;
+          }
+      }
+    };
+  </script> 
+  </body>
+</html>

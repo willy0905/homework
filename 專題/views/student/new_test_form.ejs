@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Webrtc Student index</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link href="https://cdn.datatables.net/1.12.0/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/dataTables.bootstrap5.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script> 
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script> 
+  <script src="js/config.js"></script> 
+  <link rel="stylesheet" href="/css/student.css"> 
+   
+
+</head>
+  <a style="display:none;font-size:30vh;" id="page" name="page"><%= page%></a>
+  <a style="display:none;font-size:30vh;" id="items" name="items"><%= student%></a>
+  <a style="display:none;font-size:30vh;" id="items" name="items"><%= exam_file%></a>
+  <a style="display:none;font-size:30vh;" id="url" name="url"><%= form_url%></a>
+<body class="h-100">
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">answer</h5>
+          <button type="button" class="btn-close"  data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="position:relative;z-index:10">
+          <div class="question_list">
+            <select class="btn btn-dark" id="question" style="width:20vh" onchange="choice_question()">
+            </select>
+            <select class="btn btn-dark" id="show_answer" style="width:20vh;display:none" onchange="show_answer()">
+            </select>
+            <select class="btn btn-dark" id="choice" style="width:20vh;display:none" onchange="choice_step()">
+            	<option value="choice">Choice step</option>
+            	<option value='1'>First step</option>
+            	<option value='2'>Second step</option>
+            	<option value='3'>Third step</option>
+            	<option value='answer'>answer</option>
+            </select>
+          </div>
+          <div>
+            <select class="btn btn-dark" id="type_of_answer" style="width:20vh;display:none" onchange="type_of_answer()">
+            		<option value="0">type of answer</option>
+		        <option value="1">one solution</option>
+		        <option value="2">multiple solution</option>
+		        <option value="3">no solution</option>
+            	</select>
+            	<select class="btn btn-dark" id="free_variable" style="width:20vh;display:none" onchange="generate_answer()">
+            		<option value='0'>Number of free variable</option>
+		        <option value='1'>1</option>
+		        <option value='2'>2</option>
+		        <option value='3'>3</option>
+            	</select>
+            </div>
+            <div id="question_answer">
+            </div>
+            <div id="all_answer" style="display:'none'">
+            </div>
+            <button type="button"class="btn btn-dark" style="width:20vh;display:none" id="save_answer" onclick="save_answer()">
+            	save
+            </button> 
+            <button type="button"class="btn btn-dark" style="width:20vh;display:none" id="send_answer" onclick="send_answer()">
+            	send answer
+            </button> 
+          </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <svg style="display:none;">
+  
+  <symbol id="down" viewBox="0 0 16 16">
+    <polygon points="3.81 4.38 8 8.57 12.19 4.38 13.71 5.91 8 11.62 2.29 5.91 3.81 4.38" />
+  </symbol>
+  <symbol id="users" viewBox="0 0 16 16">
+    <path d="M8,0a8,8,0,1,0,8,8A8,8,0,0,0,8,0ZM8,15a7,7,0,0,1-5.19-2.32,2.71,2.71,0,0,1,1.7-1,13.11,13.11,0,0,0,1.29-.28,2.32,2.32,0,0,0,.94-.34,1.17,1.17,0,0,0-.27-.7h0A3.61,3.61,0,0,1,5.15,7.49,3.18,3.18,0,0,1,8,4.07a3.18,3.18,0,0,1,2.86,3.42,3.6,3.6,0,0,1-1.32,2.88h0a1.13,1.13,0,0,0-.27.69,2.68,2.68,0,0,0,.93.31,10.81,10.81,0,0,0,1.28.23,2.63,2.63,0,0,1,1.78,1A7,7,0,0,1,8,15Z" />
+  </symbol>
+  <symbol version="1.1" id="login_icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 122.88" style="enable-background:new 0 0 122.88 122.88" xml:space="preserve"><style type="text/css"><![CDATA[
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#EF4136;}
+	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+]]></style><g><path class="st0" d="M61.44,0c33.93,0,61.44,27.51,61.44,61.44c0,33.93-27.51,61.44-61.44,61.44C27.51,122.88,0,95.37,0,61.44 C0,27.51,27.51,0,61.44,0L61.44,0z"/><path class="st1" d="M79.16,46.24c-2.32-2.68-2.03-6.73,0.65-9.05s6.73-2.03,9.05,0.65c2.79,3.23,5.01,6.96,6.53,11.04 c1.48,3.98,2.29,8.23,2.29,12.62c0,10.01-4.06,19.07-10.62,25.63S71.45,97.75,61.44,97.75c-10.01,0-19.07-4.06-25.63-10.62 S25.2,71.51,25.2,61.5c0-4.32,0.78-8.5,2.2-12.4c1.46-4,3.62-7.69,6.33-10.91c2.28-2.71,6.32-3.06,9.03-0.78 c2.71,2.28,3.06,6.32,0.78,9.03c-1.73,2.06-3.12,4.43-4.07,7.04c-0.9,2.47-1.39,5.17-1.39,8.02c0,6.45,2.62,12.3,6.84,16.53 c4.23,4.23,10.07,6.84,16.52,6.84c6.45,0,12.3-2.62,16.52-6.84s6.85-10.07,6.85-16.53c0-2.91-0.51-5.65-1.43-8.14 C82.4,50.74,80.97,48.33,79.16,46.24L79.16,46.24z"/><path class="st1" d="M67.88,49.12c0,3.55-2.88,6.44-6.44,6.44c-3.55,0-6.44-2.88-6.44-6.44V29.93c0-3.55,2.88-6.44,6.44-6.44 c3.55,0,6.44,2.88,6.44,6.44V49.12L67.88,49.12z"/></g>
+  </symbol>
+   
+
+</svg>
+<header class="page-header">
+  <nav>
+    <a href="#0"  class="logo" style= "margin-left:5px;">
+      <img src ="https://portalx.yzu.edu.tw/PortalSocialVB/Images/Login/logo.png" width="200px">
+    </a>
+    <button class="toggle-mob-menu" aria-expanded="false" aria-label="open menu">
+      <svg width="20" height="20" aria-hidden="true">
+        <use xlink:href="#down"></use>
+      </svg>
+    </button>
+    <ul class="admin-menu" style="margin-top: 0px;padding-left: 0px;">
+      <li class="menu-heading">
+        <h3 style="font-size:3vh;">student</h3>
+      </li>
+      <li class="menu-heading">
+        <h3 style="font-size:2.5vh;" >exam</h3>
+      </li>
+      <li>
+          <% if (page=="Exam" ){%> <a href="/user/student" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/student">
+              <% } %>
+              <span style="font-size:2.3vh;">Exam papper</span>
+            </a>
+        </li>
+        <li>
+          <% if (page=="Grade" ){%> <a href="/user/student/grade" style="background-color:#526283" id="<%= page %>">
+          <% } else { %> <a href="/user/student/grade">
+          <% } %>
+            <span style="font-size:2.3vh;">Grade</span>
+          </a>
+        </li>
+        <li class="menu-heading">
+          <h3 style="font-size:2.5vh;">class</h3>
+        </li>
+        <li>
+          <% if (page=="Class" ){%> <a href="/user/student/class" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/student/class">
+              <% } %>
+              <span style="font-size:2.3vh;">Class</span>
+            </a>
+        </li>
+        <li class="menu-heading">
+          <h3 style="font-size:2.5vh;">Settings</h3>
+        </li>
+        <li>
+          <% if (page=="Profile" ){%> <a href="/user/student/profile" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/student/profile">
+              <% } %>
+              <span style="font-size:2.3vh;">Profile</span>
+            </a>
+        </li>
+        <li>
+          <% if (page=="Change password" ){%> <a href="/user/student/change_password" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/student/change_password">
+              <% } %>
+              <span style="font-size:2.3vh;">Change password</span>
+            </a>
+        </li>
+<li>
+        <div class="switch">
+          <input type="checkbox" id="mode" checked>
+          <label for="mode">
+            <span></span>
+            <span style="font-size:2.3vh;">Dark</span>
+          </label>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</header>
+<section class="page-content">
+  <section class="search-and-user">
+    <div class="admin-profile">
+      <a style="display:none" id="studentAccount"><%= student %></a>
+      <span class="greeting" style="font-size:3vh;">Welcome Student <%= student %>!!!</span>
+      <svg>
+        <use xlink:href="#users"></use>
+      </svg>   
+      <span class="greeting" style="font-size:3vh;">logout</span>
+      <form id = "logout_form" method="post" action="/logout"></form>
+      <a onclick="document.getElementById('logout_form').submit();" >
+        <svg><use xlink:href="#login_icon" class="logout" onclick="alert('logout success');"></use></svg>
+      </a>     
+    </div>  
+  </section>  
+    <div style="text-align:center">
+    <iframe id="iframe" src="" style="width:100%;height:100vh;" value="">載入中…
+    </iframe>
+    <button type="button" class="btn btn-dark"  style="position:fixed;right:1vh;top:50vh" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="clean()">+</button>
+    </div>
+</section>
+<script>
+	var form_url = document.getElementById('url').innerHTML.split(',');
+	var question_url=[];
+	var question_type=[];
+	var question_size=[];
+	var final_send_answer=[];
+	var final_step_answer=[];
+	question_url.push(form_url[0]);
+	question_type.push('');
+	question_size.push('');
+	var total_number ;
+	var letter = ['A','B','C','D'];
+	var free_variable_letter = ['s','t','v'];
+	window.onload = test_onload;
+	function test_onload(){
+		for(var i=1;i<form_url.length;i++){
+			var str = form_url[i].split(';');
+			question_url.push(str[1]);
+			var type_size = str[0].split(':');
+			question_type.push(type_size[0]);
+			question_size.push(type_size[1]);
+		}
+		document.getElementById('iframe').src=question_url[0]+"?embedded=false";
+		document.getElementById('iframe').value="all";
+		total_number = question_url.length-1;
+		var txt="";
+		var txt1="<option value='all'>all question</option>";
+		var txt2="<option value='all'>all answer</option>";
+		for(var i=1;i<total_number;i++){
+			txt+="<div style='none' id="+"answer_question"+i+ "></div>";
+			txt1+="<option value="+i+">第"+i+"題</option>";
+			txt2+="<option value="+i+">第"+i+"題</option>";
+		}
+		txt1+="<option value='show'>show answer</option>";
+		document.getElementById("all_answer").innerHTML+=txt;
+		document.getElementById('question').innerHTML=txt1;
+		document.getElementById('show_answer').innerHTML=txt2;
+		document.getElementById("question_answer").innerHTML+="<div style='display:none' class='answer' id='enter_step1'></div><div style='display:none' class='answer' id='enter_step2'></div><div style='display:none' class='answer' id='enter_step3'></div><div style='display:none' class='answer' id='final_answer'></div>";
+	}
+	function generate_answer(){
+		document.getElementById("save_answer").style.display="";
+		var matrixs = document.getElementsByClassName("answer");
+	  	for(var i=0;i<matrixs.length;i++){
+	  		matrixs[i].style.display="none";
+	  	}
+		var num = document.getElementById("question").value;
+		var size = question_size[num].split('/');
+		var free_variable=document.getElementById('free_variable').value;
+		var txt="";
+		for(var i=0;i<size[1]-1;i++){
+			txt+="<tr><td style='height:3.5vh'>"+letter[i]+"=<input type='number' value='0' name='martix-input'  inputmode='numeric' class='question"+document.getElementById("question").value+"_answer' style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'></td>";
+			for(var j=0;j<free_variable;j++){
+				txt+="<td style='height:3.5vh'>+"+"<input type='number' value='0' name='martix-input'  inputmode='numeric' class='question"+document.getElementById("question").value+"_answer' style='font-size:1.5vh;text-align:center;width:4vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>"+free_variable_letter[j]+"</td>";
+			}
+			if(i!=size[1]-2){
+				txt+=',';
+			}
+			txt+="<br>";
+		}
+		document.getElementById("final_answer").innerHTML=txt;	
+		document.getElementById("final_answer").style.display="";
+	}
+  	function clean(){
+  	for(var i=1;i<total_number;i++){
+			document.getElementById('answer_question'+i).style.display='none';
+		}
+  	document.getElementById("send_answer").style.display="none";
+  	var matrixs = document.getElementsByClassName("answer");
+		for(var i=0;i<matrixs.length;i++){
+			matrixs[i].style.display="none";
+		}
+  	document.getElementById("question_answer").style.display="none";
+  	var question = document.getElementById("question");
+  	var choice = document.getElementById("choice");
+  	choice.style.display="none";
+  	choice.value='choice';
+   	question.value='all';
+	document.getElementById("free_variable").value=0;
+  	document.getElementById("free_variable").style.display="none";
+  	document.getElementById("type_of_answer").style.display="none";
+  	document.getElementById("save_answer").style.display="none";
+  	document.getElementById("all_answer").style.display="none";
+  }
+	function choice_question(){
+		for(var i=1;i<question_url.length;i++){
+			document.getElementById('answer_question'+i).style.display='none';
+		}
+		document.getElementById("show_answer").style.display='none';
+		document.getElementById("send_answer").style.display="none";
+		document.getElementById("question_answer").style.display="none";
+		document.getElementById("free_variable").value=0;
+		document.getElementById("save_answer").style.display="none";
+		document.getElementById("type_of_answer").value="0";
+		document.getElementById("all_answer").style.display="none";
+		document.getElementById("type_of_answer").style.display="none";
+		document.getElementById("free_variable").style.display="none";
+		var choice = document.getElementById("choice");
+	  	choice.value='choice';
+		var matrixs=document.getElementsByClassName("answer");
+		for(var i=0;i<matrixs.length;i++){
+			matrixs[i].style.display="none";
+		}
+		document.getElementById("free_variable").style.display="none";
+		var value = document.getElementById("question").value;
+		var now_matrix;
+		if(value!='all' && value !='show'){
+			document.getElementById('iframe').src=question_url[value]+"?embedded=false";
+			document.getElementById('iframe').value=value;
+			document.getElementById("choice").style.display="";
+		}
+		else if(value=='all'){
+			document.getElementById('iframe').src=question_url[0]+"?embedded=false";
+			document.getElementById('iframe').value="all";
+			document.getElementById("choice").style.display="none";
+		}
+		else if(value=='show'){
+			var choice = document.getElementById("choice");
+	  	choice.style.display="none";
+	  	choice.value='choice';
+	  	var show = document.getElementById("show_answer");
+	  	show.style.display="";
+	  	show.value='all';
+			for(var i=1;i<=total_number;i++){
+				if(document.getElementById("answer_question"+i).innerHTML!="")
+					document.getElementById("answer_question"+i).style.display="";
+			}
+			for(var i=1;i<=total_number;i++){
+				document.getElementById('answer_question'+i).style.display='';
+			}	
+			console.log(total_number);
+			document.getElementById("all_answer").style.display="";
+			document.getElementById("send_answer").style.display="";
+		}
+	}
+	function choice_step(){
+		var matrixs = document.getElementsByClassName("answer");
+	  for(var i=0;i<matrixs.length;i++){
+	  	matrixs[i].style.display="none";
+	  }
+	  document.getElementById("send_answer").style.display="none";
+		document.getElementById("question_answer").style.display="";
+		document.getElementById("free_variable").value=0;
+		document.getElementById("save_answer").style.display="none";
+		document.getElementById("type_of_answer").style.display="none";
+		document.getElementById("type_of_answer").value="0";
+		document.getElementById("free_variable").style.display="none";
+		var value = document.getElementById("choice").value;
+		var num = document.getElementById("question").value;
+		if(value!='choice'){
+			if(value=='answer'){
+				document.getElementById('type_of_answer').style.display='';
+			}
+			else{
+				document.getElementById("enter_step"+value).style.display='';
+				if(document.getElementById("enter_step"+value).innerHTML==""){
+					document.getElementById("enter_step"+value).innerHTML=generate(num);
+				}
+			}
+		}
+		else{
+			var matrixs=document.getElementsByClassName("answer");
+			for(var i=0;i<matrixs.length;i++){
+				matrixs[i].style.display="none";
+			}
+		}
+	}
+	function type_of_answer(){
+		document.getElementById("send_answer").style.display="none";
+		document.getElementById("free_variable").value=0;
+		document.getElementById("save_answer").style.display="none";
+		var matrixs = document.getElementsByClassName("answer");
+	  	for(var i=0;i<matrixs.length;i++){
+	  		matrixs[i].style.display="none";
+	  	}
+		document.getElementById("free_variable").style.display="none";
+		var type = document.getElementById("type_of_answer").value;
+		if(type=='1'){
+			generate_answer();
+			document.getElementById("save_answer").style.display="";
+		}
+		else if(type=='2'){
+			document.getElementById("free_variable").style.display="";
+		}
+		else if(type=="3"){
+		document.getElementById('final_answer').innerHTML='no answer';
+		document.getElementById("save_answer").style.display="";
+		}
+		
+	}
+	function generate(num){
+		var size = question_size[num].split("/");
+		var col = size[0];
+		var row = size[1]-1;
+		var txt="<table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+		for(var i=0;i<col;i++){
+	     	var style="";
+	     	txt+="<tr>";
+	     	if(i==0){
+					style+='border-top: 3px solid #000000;';
+	     	  }
+	     	if(i==col-1){
+	     	  style+='border-bottom: 3px solid #000000;';
+	     	}
+	     	txt+="<td style='"+style+";height:6.1vh'>&nbsp&nbsp&nbsp</td>";
+	     	for(var j=0;j<row;j++){
+	     	 if(j!=row-1){
+	     	    txt+="<td style='height:3.5vh'>&nbsp&nbsp&nbsp<input type='number' value='0' name='martix-input'  inputmode='numeric' class='question"+document.getElementById("question").value+"_step"+document.getElementById("choice").value+"' style='font-size:2.5vh;text-align:center;width:6vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>&nbsp&nbsp</td>"
+	     	    }
+	     	  else{
+	     	   txt+="<td style='height:3.5vh;border-right: 3px solid #000000;'>&nbsp&nbsp&nbsp<input type='number' value='0' name='martix-input'  inputmode='numeric' class='question"+document.getElementById("question").value+"_step"+document.getElementById("choice").value+"' style='font-size:2.5vh;text-align:center;width:6vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>&nbsp&nbsp</td>"
+	     	   }
+	     	}
+	     	txt+="<td style='height:3.5vh;border-left: 3px solid #000000;'>&nbsp&nbsp<input type='number' value=0 name='martix-input'  inputmode='numeric' class='question"+document.getElementById("question").value+"_step"+document.getElementById("choice").value+"' style='font-size:2.5vh;text-align:center;width:6vh;border:0.75px #000000 solid;height: 4vh;border-radius:4px'>&nbsp&nbsp</td>"
+	     	txt+="<td style='"+style+"'>&nbsp&nbsp&nbsp</td>";
+	     	txt+="</tr>";
+	     }
+	     return txt;
+	}
+	function save_answer(){
+		var num = document.getElementById("question").value;
+		if(document.getElementById("answer_question"+num).innerHTML!=""){
+			var result = confirm("已有答案，是否要繼續?");
+			if(result){
+				document.getElementById('answer_question'+num).innerHTML="<td>Question"+num+":</td><br>";
+				var size = question_size[num].split("/");
+				var col = size[0];
+				var row = size[1];
+				var temp_answer=[];
+				for(var k=0;k<3;k++){
+					if(document.getElementsByClassName('question'+num+"_step"+(k+1)).length!=0){
+						var temp_str="";
+						document.getElementById('answer_question'+num).innerHTML+='<td>Step'+(k+1)+':</td><br>';
+						var txt="<table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+						for(var i=0;i<col;i++){
+						  var style="";
+						  txt+="<tr>";
+						  if(i==0){
+								style+='border-top: 3px solid #000000;';
+						  }
+						  if(i==col-1){
+						    style+='border-bottom: 3px solid #000000;';
+						  }
+						  txt+="<td style='"+style+";height:6.1vh'>&emsp;</td>";
+						  for(var j=0;j<row;j++){
+						  	var answer_value=document.getElementsByClassName('question'+num+"_step"+(k+1));
+						   	if(j==row-2){
+							 		txt+="<td style='height:3.5vh;border-right: 3px solid #000000;'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+							 	}
+							  else if(j==row-1){
+							  	txt+="<td style='height:3.5vh;border-left: 3px solid #000000;'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+							  }
+								else{
+									txt+="<td style='height:3.5vh'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+							  }
+							  temp_str+=answer_value[i*(row)+j].value;
+							  if(j!=row-1){
+							  	temp_str+=',';
+							  }
+							}
+							if(i!=col-1){
+							  	temp_str+=";";
+							  }
+							txt+="<td style='"+style+"'>&emsp;</td>";
+							txt+="</tr>";
+						}
+						temp_answer.push(temp_str);
+						document.getElementById('answer_question'+num).innerHTML+=txt+'</table>';
+						document.getElementById('enter_step'+(k+1)).innerHTML="";
+					}
+					final_step_answer[num-1]=temp_answer;
+				}
+				document.getElementById('answer_question'+num).innerHTML+="<td>Answer:</td><br>";
+				var temp_str="";
+				if(document.getElementById('final_answer').innerHTML=='no answer'){
+					document.getElementById('answer_question'+num).innerHTML+="<td>no answer<td><br>";
+					temp_str='no answer';
+				}
+				else{
+					var answer_value=document.getElementsByClassName('question'+num+"_answer");
+					var answer_length = document.getElementById('free_variable').value;
+					var times=0;
+					for(var i=0;i<answer_value.length;i++){
+						document.getElementById('answer_question'+num).innerHTML+=letter[times]+"=";
+						times++;
+						temp_str+=answer_value[i].value;
+						document.getElementById('answer_question'+num).innerHTML+=answer_value[i].value;
+						for(var j=0;j<answer_length;j++){
+							document.getElementById('answer_question'+num).innerHTML+='+'+answer_value[i+j].value+free_variable_letter[j];
+							temp_str+='+'+answer_value[i+j].value+free_variable_letter[j];
+						}
+						if(i!=answer_value.length-1){
+							temp_str+=';';
+						}
+						i+=answer_length;
+						document.getElementById('answer_question'+num).innerHTML+='<br>';
+					}
+				}
+				final_send_answer[num-1]=temp_str;
+				/*
+				var txt="<td>Question"+num+":</td><br>";
+				document.getElementById('answer_question'+num).innerHTML+=txt;
+				for(var i=0;i<4;i++){
+					if(i!=3){
+						txt='<td>Step'+(i+1)+'</td><br>';
+						document.getElementById('answer_question'+num).innerHTML+=txt+document.getElementById('enter_step'+(i+1)).innerHTML;
+						document.getElementById('enter_step'+(i+1)).innerHTML="";
+					}
+					else{
+						txt="<td>Answer:</td><br><a id='question"+document.getElementById('question').value+"_answer'>";
+						document.getElementById('answer_question'+num).innerHTML+=txt+'</a>'+document.getElementById('final_answer').innerHTML;
+					}	
+					
+				}
+				*/
+			}
+		}
+		else{
+			document.getElementById('answer_question'+num).innerHTML="<td>Question"+num+":</td><br>";
+			var size = question_size[num].split("/");
+			var col = size[0];
+			var row = size[1];
+			var temp_answer=[];
+			for(var k=0;k<3;k++){
+				if(document.getElementsByClassName('question'+num+"_step"+(k+1)).length!=0){
+					var temp_str="";
+					document.getElementById('answer_question'+num).innerHTML+='<td>Step'+(k+1)+':</td><br>';
+					var txt="<table style='border-right:3px #000000 solid;border-left:3px #000000 solid;' cellpadding='10' border='0'>";
+					for(var i=0;i<col;i++){				
+					  var style="";
+					  txt+="<tr>";
+					  if(i==0){
+							style+='border-top: 3px solid #000000;';
+					  }
+					  if(i==col-1){
+					    style+='border-bottom: 3px solid #000000;';
+					  }
+					  txt+="<td style='"+style+";height:6.1vh'>&emsp;</td>";
+					  for(var j=0;j<row;j++){
+					  	var answer_value=document.getElementsByClassName('question'+num+"_step"+(k+1));
+					   	if(j==row-2){
+						 		txt+="<td style='height:3.5vh;border-right: 3px solid #000000;'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+						 	}
+						  else if(j==row-1){
+						  	txt+="<td style='height:3.5vh;border-left: 3px solid #000000;'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+						  }
+							else{
+								txt+="<td style='height:3.5vh'>&emsp;"+answer_value[i*(row)+j].value+"&emsp;</td>";
+						  }
+						  temp_str+=answer_value[i*(row)+j].value;
+						  if(j!=row-1){
+						  	temp_str+=',';
+						  }
+						}
+						if(i!=col-1){
+					  	temp_str+=";";
+					  }
+						txt+="<td style='"+style+"'>&emsp;</td>";
+						txt+="</tr>";
+					}
+					temp_answer.push(temp_str);
+					document.getElementById('answer_question'+num).innerHTML+=txt+'</table>';
+					document.getElementById('enter_step'+(k+1)).innerHTML="";
+				}
+				final_step_answer[num-1]=temp_answer;
+			}
+			document.getElementById('answer_question'+num).innerHTML+="<td>Answer:</td><br>";
+			var temp_str="";
+			if(document.getElementById('final_answer').innerHTML=='no answer'){
+				document.getElementById('answer_question'+num).innerHTML+="<td>no answer<td><br>";
+				temp_str='no answer';
+			}
+			else{
+				var answer_value=document.getElementsByClassName('question'+num+"_answer");
+				var answer_length = document.getElementById('free_variable').value;
+				var times=0;
+				for(var i=0;i<answer_value.length;i++){
+					document.getElementById('answer_question'+num).innerHTML+=letter[times]+"=";
+					times++;
+					temp_str+=answer_value[i].value;
+					document.getElementById('answer_question'+num).innerHTML+=answer_value[i].value;
+					for(var j=0;j<answer_length;j++){
+						document.getElementById('answer_question'+num).innerHTML+='+'+answer_value[i+j].value+free_variable_letter[j];
+						temp_str+='+'+answer_value[i+j].value+free_variable_letter[j];
+					}
+					if(i!=answer_value.length-1){
+						temp_str+=';';
+					}
+					i+=answer_length;
+					document.getElementById('answer_question'+num).innerHTML+='<br>';
+				}
+				final_send_answer[num-1]=temp_str;
+			}
+		}
+		document.getElementById("free_variable").value=0;
+	}
+	function show_answer(){
+		var num = document.getElementById('show_answer').value;
+		for(var i=1;i<total_number;i++){
+			document.getElementById('answer_question'+i).style.display='none';
+		}
+		if(num=='all'){
+			for(var i=1;i<total_number;i++){
+				document.getElementById('answer_question'+i).style.display='';
+			}
+		}
+		else{
+		document.getElementById('answer_question'+num).style='';
+		}
+	}
+	function send_answer(){
+		console.log(final_step_answer);
+		console.log(final_send_answer);
+	}
+</script>
+<script>  
+const html = document.documentElement;
+const body = document.body;
+const menuLinks = document.querySelectorAll(".admin-menu a");
+const collapseBtn = document.querySelector(".admin-menu .collapse-btn");
+const toggleMobileMenu = document.querySelector(".toggle-mob-menu");
+const switchInput = document.querySelector(".switch input");
+const switchLabel = document.querySelector(".switch label");
+const switchLabelText = switchLabel.querySelector("span:last-child");
+const collapsedClass = "collapsed";
+const lightModeClass = "light-mode";
+/*TOGGLE MOBILE MENU*/
+toggleMobileMenu.addEventListener("click", function () {
+  body.classList.toggle("mob-menu-opened");
+  this.getAttribute("aria-expanded") == "true"
+    ? this.setAttribute("aria-expanded", "false")
+    : this.setAttribute("aria-expanded", "true");
+  this.getAttribute("aria-label") == "open menu"
+    ? this.setAttribute("aria-label", "close menu")
+    : this.setAttribute("aria-label", "open menu");
+});
+/*TOGGLE LIGHT/DARK MODE*/
+if (localStorage.getItem("dark-mode") === "false") {
+  html.classList.add(lightModeClass);
+  switchInput.checked = false;
+  switchLabelText.textContent = "Light";
+}
+
+switchInput.addEventListener("input", function () {
+  html.classList.toggle(lightModeClass);
+  if (html.classList.contains(lightModeClass)) {
+    switchLabelText.textContent = "Light";
+    localStorage.setItem("dark-mode", "false");
+  } else {
+    switchLabelText.textContent = "Dark";
+    localStorage.setItem("dark-mode", "true");
+  }
+});
+</script>
+  <script>
+    function save_foldername(){
+      $.ajax({
+        url:'https://140.138.144.121:1447/professor/draw_up/create',
+        type:'post',
+        data:{
+          "folder_name": $('#folder_name').val(),
+          "class_no": "CS233A"
+        },
+        success:function(data){
+          alert("send success");
+        },
+      });
+      setTimeout(function () { location.reload(true); }, 1000);
+    }
+  </script>
+  <script>
+    $(document).ready(function(){
+      $(document).on('click', '.delete', function(){
+      var id = $(this).data('id');
+      var id_list = id.split('+');
+        if(confirm("Are you sure you want to delete this file  "+id_list[1]+" ?")){
+          $.ajax({
+            url:"https://140.138.144.121:1447/professor/draw_up/delete",
+            method:"POST",
+            data:{
+              "class_no": id_list[0],
+              "exam_file":id_list[1],
+            },
+            dataType:"JSON",
+            success:function(data){
+              alert("delete success");
+            }
+          });
+        }
+        setTimeout(function(){location.reload(true);}, 1000);
+      });
+    });
+  </script>
+    <script>
+    var socket = io.connect();    
+    socket.emit('login',{userId:document.getElementById('studentAccount').innerHTML});
+  </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" id = "clickArea">
+  <head>
+    <title>Screen API</title>
+    <meta charset="utf-8"> 
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  </head>  
+  <body>  
+    <canvas id="screenshotCanvas">
+      <div  style="font-size:3vh;">5555555555</div>  
+    </canvas>
+      <div id = "apiText" style="font-size:3vh;"></div>  
+      <button id="screenshotButton">擷取手機截圖</button>
+    <script>  
+    /*
+      var screenshotButton = document.getElementById('screenshotButton');
+      screenshotButton.addEventListener('click', function() {
+        navigator.mediaDevices.getDisplayMedia({ video: true })
+      .then(function(stream) {
+        // 建立一個 video 元素顯示截圖內容
+        var videoElement = document.createElement('video');
+        videoElement.srcObject = stream;
+
+        // 等待 video 元素載入完成後，開始進行截圖
+        videoElement.addEventListener('loadedmetadata', function() {
+          // 建立一個 canvas 元素，用於繪製截圖
+          var canvasElement = document.createElement('canvas');
+          canvasElement.width = videoElement.videoWidth;
+          canvasElement.height = videoElement.videoHeight;
+
+          // 將截圖繪製到 canvas 上
+          var context = canvasElement.getContext('2d');
+          context.drawImage(videoElement, 0, 0);
+
+          // 獲取圖像數據的 URL
+          var screenshotDataUrl = canvasElement.toDataURL();
+
+          // 創建一個新的圖像元素顯示截圖
+          var screenshotImage = document.createElement('img');
+          screenshotImage.src = screenshotDataUrl;
+
+          // 將截圖圖像元素添加到頁面中
+          document.body.appendChild(screenshotImage);
+
+          // 關閉截圖視訊流
+          stream.getTracks().forEach(function(track) {
+            track.stop();
+          });
+        });
+      })
+      .catch(function(error) {
+        console.error('無法擷取手機截圖:', error);
+      });
+      });
+      */
+    </script>  
+    <script>
+      const srcElement = document.querySelector("body");
+      
+      
+      document.onvisibilitychange = function() {
+        document.getElementById('apiText').innerHTML += "<div><label>"+document.visibilityState+"</label></div>";
+        if(document.visibilityState=='hidden'){
+          html2canvas(srcElement).then(canvas => {
+            return document.body.appendChild(canvas);
+          });
+          //document.getElementById('screenshotButton').dispatchEvent(new Event('click'));
+        }
+      };
+      
+    </script>  
+  </body>
+</html>

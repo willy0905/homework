@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <title>Webrtc Professor Draw up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link href="https://cdn.datatables.net/1.12.0/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script href="js/config.js"></script>
+  <link rel="stylesheet" href="/css/student.css">
+
+
+</head>
+   <div class="modal fade" id="selectModal" tabindex="-1" aria-labelledby="selectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" id="sample_form">
+          <div class="modal-header">
+            <h5 class="modal-title" id="selectModalLabel" style="font-size:3vh;">Select your class</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="width_div_phone">
+            <div class="form-group">
+            <ul class="dropdown-menu-dark" style="padding-left: 0px;">
+            <% var class_dict = {};%>
+            <% var temp_str = "";%>
+            <% for (var i=0;i<class_list.length;i++){ %>
+            <% class_dict[class_list[i]]=1; %>
+            <% } %>
+            <% for (const key in class_dict){ %>
+            <li><a style="font-size:3vh;text-align:center;" id="class_<%= key%>" name="class_<%= key%>" class="dropdown-item form-control" onclick="click_class('<%= key%>')" data-bs-dismiss="modal" aria-label="Close"><%= key  %></a></li>
+            <% temp_str += "class_"+key+"+++"; %>
+            <% } %>
+            </ul>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<body class="h-100">
+  <% var str="" ;%>
+  <% datalist.forEach(function(datalist) { %>
+  <% str+=datalist.class_no+"+++"+datalist.exam_file+"---";%>
+  <% }); %>
+  <a style="display:none;font-size:30vh;" id="items_data" name="items_data"><%= str %></a>
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel" style="font-size:4vh;"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-striped table-bordered" id="user_information">
+            <thead>
+              <tr>
+                <th style="font-size:3vh;">ID</th>
+                <th style="font-size:3vh;">Class no</th>
+                <th style="font-size:3vh;">File name</th>
+                <th style="font-size:3vh;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="user_info_target">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel" style="font-size:4vh;"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-striped table-bordered" id="user_information">
+            <thead>
+              <tr>
+                <th style="font-size:3vh;">ID</th>
+                <th style="font-size:3vh;">Class no</th>
+                <th style="font-size:3vh;">File name</th>
+                <th style="font-size:3vh;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="user_info_target">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+	<div class="modal fade" id="saveModal" tabindex="-1" aria-labelledby="saveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-striped table-bordered" >
+              <tbody id="question_information">
+		            <tr>
+		              <th style="font-size:3vh;">題型</th>
+		              <th style="font-size:3vh;">矩陣大小</th>
+		              <th style="font-size:3vh;">答案類型</th>
+		              <th style="font-size:3vh;">數量</th>
+		              <th style="font-size:3vh;">分數</th>
+		              <th style="font-size:3vh;">動作</th>
+		            </tr>
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <svg style="display:none;">
+    <symbol id="down" viewBox="0 0 16 16">
+      <polygon points="3.81 4.38 8 8.57 12.19 4.38 13.71 5.91 8 11.62 2.29 5.91 3.81 4.38" />
+    </symbol>
+    <symbol id="users" viewBox="0 0 16 16">
+      <path
+        d="M8,0a8,8,0,1,0,8,8A8,8,0,0,0,8,0ZM8,15a7,7,0,0,1-5.19-2.32,2.71,2.71,0,0,1,1.7-1,13.11,13.11,0,0,0,1.29-.28,2.32,2.32,0,0,0,.94-.34,1.17,1.17,0,0,0-.27-.7h0A3.61,3.61,0,0,1,5.15,7.49,3.18,3.18,0,0,1,8,4.07a3.18,3.18,0,0,1,2.86,3.42,3.6,3.6,0,0,1-1.32,2.88h0a1.13,1.13,0,0,0-.27.69,2.68,2.68,0,0,0,.93.31,10.81,10.81,0,0,0,1.28.23,2.63,2.63,0,0,1,1.78,1A7,7,0,0,1,8,15Z" />
+    </symbol>
+    <symbol version="1.1" id="login_icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+      x="0px" y="0px" viewBox="0 0 122.88 122.88" style="enable-background:new 0 0 122.88 122.88" xml:space="preserve">
+      <style type="text/css">
+        <![CDATA[
+        .st0 {
+          fill-rule: evenodd;
+          clip-rule: evenodd;
+          fill: #EF4136;
+        }
+
+        .st1 {
+          fill-rule: evenodd;
+          clip-rule: evenodd;
+          fill: #FFFFFF;
+        }
+        ]]>
+      </style>
+      <g>
+        <path class="st0"
+          d="M61.44,0c33.93,0,61.44,27.51,61.44,61.44c0,33.93-27.51,61.44-61.44,61.44C27.51,122.88,0,95.37,0,61.44 C0,27.51,27.51,0,61.44,0L61.44,0z" />
+        <path class="st1"
+          d="M79.16,46.24c-2.32-2.68-2.03-6.73,0.65-9.05s6.73-2.03,9.05,0.65c2.79,3.23,5.01,6.96,6.53,11.04 c1.48,3.98,2.29,8.23,2.29,12.62c0,10.01-4.06,19.07-10.62,25.63S71.45,97.75,61.44,97.75c-10.01,0-19.07-4.06-25.63-10.62 S25.2,71.51,25.2,61.5c0-4.32,0.78-8.5,2.2-12.4c1.46-4,3.62-7.69,6.33-10.91c2.28-2.71,6.32-3.06,9.03-0.78 c2.71,2.28,3.06,6.32,0.78,9.03c-1.73,2.06-3.12,4.43-4.07,7.04c-0.9,2.47-1.39,5.17-1.39,8.02c0,6.45,2.62,12.3,6.84,16.53 c4.23,4.23,10.07,6.84,16.52,6.84c6.45,0,12.3-2.62,16.52-6.84s6.85-10.07,6.85-16.53c0-2.91-0.51-5.65-1.43-8.14 C82.4,50.74,80.97,48.33,79.16,46.24L79.16,46.24z" />
+        <path class="st1"
+          d="M67.88,49.12c0,3.55-2.88,6.44-6.44,6.44c-3.55,0-6.44-2.88-6.44-6.44V29.93c0-3.55,2.88-6.44,6.44-6.44 c3.55,0,6.44,2.88,6.44,6.44V49.12L67.88,49.12z" />
+      </g>
+    </symbol>
+
+
+  </svg>
+  <header class="page-header">
+    <a style="display:none;font-size:30vh;" id="page" name="page"><%= page %></a>
+    <% var str='' ; %>
+    <% for (var i=0;i<datalist.length;i++){ %>
+    <% if (i!=0){ str=str + "+++" ;}%>
+    <% str=str + datalist[i].class_no + "+++" + datalist[i].exam_file; %>
+    <% } %>
+    <a style="display:none;font-size:30vh;" id="items" name="items"><%= str%></a>
+    
+    
+    <nav>
+      <a href="#0" class="logo" style="margin-left:5px;">
+        <img src="https://portalx.yzu.edu.tw/PortalSocialVB/Images/Login/logo.png" width="200px">
+      </a>
+      <button class="toggle-mob-menu" aria-expanded="false" aria-label="open menu">
+        <svg width="20" height="20" aria-hidden="true">
+          <use xlink:href="#down"></use>
+        </svg>
+      </button>
+      <ul class="admin-menu" style="margin-top: 0px;padding-left: 0px;">
+        <li class="menu-heading">
+          <h3 style="font-size:3vh;">professor</h3>
+        </li>
+        <li class="menu-heading">
+          <h3 style="font-size:2.5vh;">exam</h3>
+        </li>
+        <li>
+          <% if (page=="Exam" ){%> <a href="/user/professor" style="background-color:#526283" id="<%= page %>">
+          <% } else { %> <a href="/user/professor">
+          <% } %>
+          <span style="font-size:2.3vh;">Exam</span>
+          </a>
+        </li>
+        <li>
+          <% if (page=="Draw up" ){%> <a href="/user/professor/draw_up" style="background-color:#526283" id="<%= page %>">
+          <% } else { %> <a href="/user/professor/draw_up">
+          <% } %>
+          <span style="font-size:2.3vh;">Draw up</span>
+          </a>
+        </li>
+        <li>
+          <% if (page=="Qrcode" ){%> <a href="/user/professor/qrcode" style="background-color:#526283" id="<%= page %>">
+          <% } else { %> <a href="/user/professor/qrcode">
+          <% } %>
+            <span style="font-size:2.3vh;">Qrcode</span>
+          </a>
+        </li>
+        <li>
+          <% if (page=="Exam invigilation" ){%> <a href="/user/professor/invigilation" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/professor/invigilation">
+              <% } %>
+              <span style="font-size:2.3vh;">Exam invigilation</span>
+            </a>
+        </li>
+        <li>
+          <% if (page=="Grade" ){%> <a href="/user/professor/grade" style="background-color:#526283" id="<%= page %>">
+          <% } else { %> <a href="/user/professor/grade">
+          <% } %>
+          <span style="font-size:2.3vh;">Grade</span>
+          </a>
+        </li>
+        <li class="menu-heading">
+          <h3 style="font-size:2.5vh;">class</h3>
+        </li>
+        <li>
+          <% if (page=="Class" ){%> <a href="/user/professor/class" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/professor/class">
+              <% } %>
+              <span style="font-size:2.3vh;">Class</span>
+            </a>
+        </li>       
+        <li>
+          <% if (page=="Student" ){%> <a href="/user/professor/student" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/professor/student">
+              <% } %>
+              <span style="font-size:2.3vh;">Student</span>
+            </a>
+        </li>
+        <li class="menu-heading">
+          <h3 style="font-size:2.5vh;">Settings</h3>
+        </li>
+        <li>
+          <% if (page=="Profile" ){%> <a href="/user/professor/profile" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/professor/profile">
+              <% } %>
+              <span style="font-size:2.3vh;">Profile</span>
+            </a>
+        </li>
+        <li>
+          <% if (page=="Change password" ){%> <a href="/user/professor/change_password" style="background-color:#526283" id="<%= page %>">
+            <% } else { %> <a href="/user/professor/change_password">
+              <% } %>
+              <span style="font-size:2.3vh;">Change password</span>
+            </a>
+        </li>
+
+        <li>
+          <div class="switch">
+            <input type="checkbox" id="mode" checked>
+            <label for="mode">
+              <span></span>
+              <span style="font-size:2.3vh;">Dark</span>
+            </label>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="page-content">
+    <section class="search-and-user">
+      <div class="admin-profile">
+        <span class="greeting" style="font-size:3vh;">Welcome Professor <%= professor %>!!!</span>
+        <svg>
+          <use xlink:href="#users"></use>
+        </svg>
+
+        <span class="greeting" style="font-size:3vh;">logout</span>
+        <form id="logout_form" method="post" action="/logout"></form>
+        <a onclick="document.getElementById('logout_form').submit();">
+          <svg>
+            <use xlink:href="#login_icon" class="logout" onclick="alert('logout success');"></use>
+          </svg>
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <div class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col col-sm-9" style="font-size:4vh;height:7vh;"> &nbsp&nbsp&nbsp&nbsp<%= page%>
+          </div>
+        </div>
+        <table class="table table-striped table-bordered">
+          <tbody>
+            <tr>
+              <th style="font-size:3vh;height:7vh;vertical-align:middle;" class="col col-sm-6" id="class_no_name">
+                &nbsp&nbsp&nbsp&nbspClass no:&nbsp&nbsp&nbsp&nbsp</th>
+              <th style="font-size:3vh;" class="col col-sm-5">
+                <div class="dropdown" id="width_div">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false" style="font-size:3vh;width:100%;">Please select your Class ID</button>
+                  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
+                    <% var class_dict = {};%>
+                    <% var temp_str = "";%>
+                    <% for (var i=0;i<class_list.length;i++){ %>
+                    <% class_dict[class_list[i]]=1; %>
+                    <% } %>
+                    <% for (const key in class_dict){ %>
+                    <li><a style="font-size:3vh;text-align:center;" id="class_<%= key%>" name="class_<%= key%>" class="dropdown-item" onclick="click_class('<%= key%>')"><%= key  %></a></li>
+                     <% temp_str += "class_"+key+"+++"; %>
+                    <% } %>
+                    <a style="display:none;font-size:3vh;" id="li_items" name="li_items"><%= temp_str %></a>  
+                  </ul>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th style="font-size:3vh;height:7vh;vertical-align:middle;">&nbsp&nbsp&nbsp&nbspaction</th>
+              <th style="font-size:3vh;" class="col col-sm-5" id="target_button">
+              	<button class="btn btn-dark btn-sm" id="edit_button"style="font-size:3vh;width:100%;" data-bs-toggle="" data-bs-target="#exampleModal">
+              		edit exam file
+              	</button>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered" id="user_information">
+           <form>
+              <tbody style="font-size:3vh;">
+              <tr id="question">
+              	<th>
+              						請選擇題目類型
+              	</th>
+             		<th style="text-align:center;">
+             		<select style="font-size:3vh;text-align:center;width:50%" class="btn btn-secondary dropdown-toggle" id="type_question" onchange="select_type()">
+             			<option value="0">請選擇題目類型</option>
+             			<option value="NonHomogeneous">NonHomogeneous</option>
+             			<option value="Homogeneous">Homogeneous</option>
+             			<option value="Inverse">Inverse matrix</option>
+             			<option value="Involutory_matrix">Involutory matrix</option>
+             			<option value="transition_matrix_type1">Find the matrix of T relative to B'</option>
+             			<option value="transition_matrix_type2">Find the standaerd matrix for T	</option>
+             			<option value="transition_matrix_type3">Find the matrix of T relative to the basis B</option>
+             			<option value="transition_matrix_type4">Find the nullity and rank</option>
+             		</select>
+             		</th>
+              </tr>
+              <tr id="size" style="display:none">
+              	<th>
+              						請選擇矩陣大小
+              	</th>
+              	<th style="text-align:center;">
+              	<select style="font-size:3vh;text-align:center;width:50%;" class="btn btn-secondary dropdown-toggle" id="size_question" onchange="select_size()">
+              		<option value="0">請選擇矩陣大小</option>
+              		<option value="2階">2階</option>
+              		<option value="3階">3階</option>
+              		<option value="4階">4階</option>
+              	</select>
+
+              	<select style="font-size:3vh;text-align:center;width:50%;" class="btn btn-secondary dropdown-toggle" id="n_size_question" onchange="select_size()">
+              		<option value="0">請選擇n大小</option>
+              		<option value="2階">2階</option>
+              		<option value="3階">3階</option>
+              		<option value="4階">4階</option>
+              	</select>
+              	<select style="font-size:3vh;text-align:center;width:50%;" class="btn btn-secondary dropdown-toggle" id="m_size_question" onchange="select_size()">
+              		<option value="0">請選擇m大小</option>
+              		<option value="2階">2階</option>
+              		<option value="3階">3階</option>
+              		<option value="4階">4階</option>
+              	</select>
+								</th>
+              </tr>
+              <tr id="answer" style="display:none">
+              	<th >
+              						請選擇答案類型
+              	</th>
+                <th style="text-align:center;">
+              	<select style="font-size:3vh;text-align:center;width:50%;" class="btn btn-secondary dropdown-toggle" id="type_answer" onchange="select_answer()">
+              		<option value="0">請選擇答案類型</option>
+              		<option value="唯一解">唯一解</option>
+              		<option value="多組解">多組解</option>
+              		<option value="無解">無解</option>
+              		<option value="唯一解">唯一解</option>
+              		<option value="無解">無解</option>
+              	</select>
+                </th>
+              </tr>
+              <tr id="number" style="display:none">
+              	<th>
+              							數量
+              	</th>
+              	<th style="text-align:center">
+              		<input style="text-align:center;width:100%" type="number" placeholder="1"  min="1" max="10" id="question_number"></input>
+              	</th>
+              </tr>
+              <tr id="point" style="display:none">
+              	<th>
+              							分數
+              	</th>
+              	<th style="text-align:center">
+              		<input style="text-align:center;width:100%" type="number" placeholder="0"  min="0" max="100" id="question_point"></input>
+              	</th>
+              </tr>
+              <tr id="save" style="display:none">
+              	<th></th>
+              	<th style="text-align:center"><input class=" btn-dark btn-sm"  style="font-size:3vh;" type="button" onclick="save_question();" value="添加"></th>
+              </tr>
+              <tr id="question_img" style="display:none">
+              	<th>
+              							圖片
+              	</th>
+              	<th style="text-align:center;">
+              			<img id="image" style="height:auto;width:75%" src="">
+              	</th>
+              </tr>
+              <tr>
+                  <th>請輸入考試名稱</th>
+                  <th><input type="text" style="font-size:3vh;width:100%;text-align:center" placeholder="請輸入考試名稱" class="folder_name" name="folder_name" id="folder_name" required ></th>
+                </tr>
+                <tr style="display:none;">
+                  <th style="display:none;">Class_no</th>
+                  <th><input type="hidden" class="folder_name" name="class_no_input" id="class_no_input" required></th>
+                </tr>
+              </tbody>
+              <tfoot>
+                <th>
+                	<center>
+                		<button type="button" class="btn btn-dark btn-sm" style="font-size:3vh;" data-bs-toggle="modal" data-bs-target="#saveModal">
+              							查看已選擇的題目
+              			</button>
+                  </center>
+                </th>
+                <th>
+                  <center>
+                    <input class="btn btn-dark btn-sm"  style="font-size:3vh;" type="button"
+                      onclick="save_foldername();" value="生成題目 ">
+                  </center>
+                </th>
+                <th></th>
+              </tfoot>
+            </form>
+          </table>
+
+        </div>
+      </div>
+    </div>
+    </div>
+
+  </section>
+   <script>
+   	var question_num = 0;
+    window.addEventListener('resize', re_resize);
+    function re_resize(){
+      var width;
+      //alert(document.documentElement.scrollWidth);
+      const num = document.documentElement.scrollWidth;
+      //alert(typeof(num));
+      if(document.documentElement.scrollWidth > 896){
+        width = $("#width_div").width();
+      }
+      else
+        width = $("#width_div_phone").width();
+      
+      var temp_str=document.getElementById('li_items').innerText.split('+++');    
+      for(var i=0;i<temp_str.length-1;i++){
+        var class_list = document.querySelectorAll('#'+temp_str[i]);
+        for(var j=0;j<class_list.length;j++)
+          class_list[j].style.width = width+"px";
+      } 
+    }
+    const mediaQuery = window.matchMedia('(max-width: 896px)');
+    mediaQuery.addListener(handleDeviceChange);
+    var width = $("#width_div").width();
+    function handleDeviceChange(e) {
+      var button_name = document.getElementById('dropdownMenuButton1').innerHTML;  
+      if (mediaQuery.matches) {  
+        document.getElementById('width_div').innerHTML='<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" style="font-size:3vh;width:100%;" data-bs-toggle="modal" data-bs-target="#selectModal">'+button_name+'</button><ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1"><% var class_dict = {};%><% var temp_str = "";%><% for (var i=0;i<class_list.length;i++){ %><% class_dict[class_list[i]]=1; %><% } %><% for (const key in class_dict){ %><li><a style="font-size:3vh;text-align:center;" id="class_<%= key%>" name="class_<%= key%>" class="dropdown-item" onclick="click_class(\'<%= key%>\')"><%= key  %></a></li><% temp_str += "class_"+key+"+++"; %><% } %><a style="display:none;font-size:3vh;" id="li_items" name="li_items"><%= temp_str %></a></ul>';
+        
+        width = $("#width_div_phone").width();
+      }
+      else{
+        //alert('Media Query NO!');
+        document.getElementById('width_div').innerHTML='<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"data-bs-toggle="dropdown" aria-expanded="false" style="font-size:3vh;width:100%;">'+button_name+'</button><ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1"><% var class_dict = {};%><% var temp_str = "";%><% for (var i=0;i<class_list.length;i++){ %><% class_dict[class_list[i]]=1; %><% } %><% for (const key in class_dict){ %><li><a style="font-size:3vh;text-align:center;" id="class_<%= key%>" name="class_<%= key%>" class="dropdown-item" onclick="click_class(\'<%= key%>\')"><%= key  %></a></li><% temp_str += "class_"+key+"+++"; %><% } %><a style="display:none;font-size:3vh;" id="li_items" name="li_items"><%= temp_str %></a></ul>';
+        width = $("#width_div").width();
+      }
+    }
+    handleDeviceChange(mediaQuery);
+    
+    temp_str=document.getElementById('li_items').innerText.split('+++');    
+    for(var i=0;i<temp_str.length-1;i++){
+      var class_list = document.querySelectorAll('#'+temp_str[i]);
+      for(var j=0;j<class_list.length;j++)
+        class_list[j].style.width = width+"px";
+    }
+    const html = document.documentElement;
+    const body = document.body;
+    const menuLinks = document.querySelectorAll(".admin-menu a");
+    const collapseBtn = document.querySelector(".admin-menu .collapse-btn");
+    const toggleMobileMenu = document.querySelector(".toggle-mob-menu");
+    const switchInput = document.querySelector(".switch input");
+    const switchLabel = document.querySelector(".switch label");
+    const switchLabelText = switchLabel.querySelector("span:last-child");
+    const collapsedClass = "collapsed";
+    const lightModeClass = "light-mode";
+    const str = document.getElementById('page').innerText;
+    const temp = document.getElementById(str).innerHTML;
+    toggleMobileMenu.addEventListener("click", function () {
+      body.classList.toggle("mob-menu-opened");
+      this.getAttribute("aria-expanded") == "true"
+        ? this.setAttribute("aria-expanded", "false")
+        : this.setAttribute("aria-expanded", "true");
+      this.getAttribute("aria-label") == "open menu"
+        ? this.setAttribute("aria-label", "close menu")
+        : this.setAttribute("aria-label", "open menu");
+    });
+    if (localStorage.getItem("dark-mode") === "false") {
+      html.classList.add(lightModeClass);
+      switchInput.checked = false;
+      switchLabelText.textContent = "Light";
+    }
+    switchInput.addEventListener("input", function () {
+      html.classList.toggle(lightModeClass);
+      if (html.classList.contains(lightModeClass)) {
+        switchLabelText.textContent = "Light";
+        localStorage.setItem("dark-mode", "false");
+        document.getElementById(str).style.backgroundColor = "#d8deec";
+        document.getElementById(str).style.color = "black";
+      } else {
+        switchLabelText.textContent = "Dark";
+        localStorage.setItem("dark-mode", "true");
+        document.getElementById(str).style.backgroundColor = "#526283";
+        document.getElementById(str).style.color = "white";
+      }
+    });
+    
+    function click_class(str) {
+      var str_temp = "class_" + str;
+      var class_list = document.querySelectorAll('#'+str_temp);
+      for(var j=0;j<class_list.length;j++)
+        class_list[j].classList.add('active');
+      document.getElementById(str_temp).classList.add('active');
+      var button_name = "class_" + document.getElementById('dropdownMenuButton1').innerHTML;
+      if (document.getElementById(button_name) != undefined){
+        class_list = document.querySelectorAll('#'+button_name);
+        for(var j=0;j<class_list.length;j++)
+          class_list[j].classList.remove('active');
+      }
+      
+      str_temp = str.split('_')[0].split(' ')[0];
+      
+      document.getElementById('dropdownMenuButton1').innerHTML = str;
+      document.getElementById('class_no_input').value = str_temp;
+      document.getElementById('class_no_name').innerHTML = "&nbsp&nbsp&nbsp&nbspClass no:&nbsp&nbsp&nbsp&nbsp" + str;
+      alert("class: " + str + ", selected!!!");
+    }
+    
+    $(document).ready(function () {
+      $(document).on('click', '#edit_button', function () {
+        var button_name_1 = document.getElementById('dropdownMenuButton1').innerHTML;
+        if(button_name_1=="Please select your Class ID"){
+          alert("Please Select your Class ID!!!");
+        }
+        else{
+          button_name_1 = button_name_1.split(' ')[0];
+          
+          document.getElementById('exampleModalLabel').innerHTML = "Show the exams in " + button_name_1;
+          var temp = document.getElementById('user_info_target').innerHTML;
+          var datalist = document.getElementById('items_data').innerText;
+          datalist = datalist.split('---');
+          var datalist_split, num = 0;
+          temp = "";
+          for (var i = 0; i < datalist.length - 1; i++) {
+            datalist_split = datalist[i].split("+++");
+            if (datalist_split[0] == button_name_1) {
+              temp += '<tr><th style="font-size:3vh;">' + (++num) + '</th><th style="font-size:3vh;">' + datalist_split[0] + '</th><th style="font-size:3vh;">' + datalist_split[1] + '</th><th><form ><button type ="submit" style="font-size:3vh;" class="btn btn-danger btn-sm delete" id="Delsubmit" data-id = "' + datalist_split[0] + '+' + datalist_split[1] + '" >Delete</button></form></th></tr>';
+            }
+          }
+          document.getElementById('user_info_target').innerHTML = temp;
+          document.getElementById('target_button').innerHTML='<button class="btn btn-dark btn-sm" id="edit_button" style="font-size:3vh;width:100%" data-bs-toggle="modal" data-bs-target="#exampleModal">edit exam file</button>';
+        }
+      });
+    });
+    function save_foldername() {
+      var button_name_1 = document.getElementById('dropdownMenuButton1').innerHTML;
+      var folder_name = document.getElementById("folder_name").value;
+      if(button_name_1=="Please select your Class ID"){
+        alert("Please Select your Class ID!!!");
+      }
+      else if(folder_name.length==0){
+      	alert("Please Enter your Folder name!!!");
+      }
+      else{
+      	var class_no = document.getElementById("class_no_input").value;
+		    var send_str ="";
+		    var point ="";
+		    for(var i=1;i<=question_num;i++){
+		    	type_question=document.getElementById("type_question_"+i).innerHTML;
+		    	type_answer=document.getElementById("type_answer_"+i).innerHTML;
+		    	size_question=document.getElementById("size_question_"+i).innerHTML;
+		    	question_point = document.getElementById("question_point_"+i).innerHTML;
+		    	type="";
+		    	point+=question_point;
+		    	if(type_question=="NonHomogeneous" || type_question=="Homogeneous"){
+		    		type="question_GS";
+		    	}
+		    	else if(type_question=="Involutory_matrix"){
+		    		type="Involutory_matrix";
+		    	}
+		    	else if(type_question=="Inverse"){
+		    		type="Inverse";
+		    	}
+		    	else{
+		    		type = "transition_matrix";
+		    	}
+		    	if(type_answer!="-"){
+		    		send_str+=size_question+type_answer+type_question+","+type;
+		    	}
+		    	else{
+		    		send_str+=size_question+type_question+","+type;
+		    	}
+		    	if(i!=question_num){
+		    		send_str+=";";
+		    		point+=";";
+		    	}
+		    }
+		    console.log(send_str);
+		    console.log(point);
+		    $.ajax({
+		      url: 'https://140.138.144.121:1447/user/professor/draw_up/create',
+		      type: 'post',
+		      data: {
+		        "folder_name": $('#folder_name').val(),
+		        "class_no": $('#class_no_input').val(),
+		        "question_num":question_num,
+		      },
+		      success: function (data) {
+		        alert("send success");
+		      },
+		    });
+		    $.ajax({
+		      url: 'https://script.google.com/macros/s/AKfycbxvdahEQE02NB1BbbPU5ecbNlMnb42XXCIyDJSbV78_XI9suHzrqHrY-7V1rqqut44N/exec',
+		      type: 'post',
+		      data: {
+		        "send_info":"save_info",
+		        "class_no":class_no,
+		        "folder_name":folder_name,
+		        "question_num":question_num,
+		        "question":send_str,
+		        "question_point":point,
+		      },
+		      success: function (data) {
+		        alert("send success");
+		      },
+     	 });
+      	setTimeout(function () { location.reload(true); }, 1000);
+      }
+    }
+    $(document).ready(function () {
+      $(document).on('click', '#Delsubmit', function () {
+        event.preventDefault();      
+        var id = $(this).data('id');
+        id = id.split('+');
+        if (confirm("Are you sure you want to delete this data?")) {
+          $.ajax({
+            url: "https://140.138.144.121:1447/user/professor/draw_up/delete",
+            type: "post",
+            data: {
+              class_no: id[0],
+              exam_file: id[1],
+            },
+            success: function (data) {
+              alert("delete success");
+            }
+          });
+          setTimeout(function () { location.reload(true); }, 1000);
+          $.ajax({
+            url: "https://script.google.com/macros/s/AKfycbxvdahEQE02NB1BbbPU5ecbNlMnb42XXCIyDJSbV78_XI9suHzrqHrY-7V1rqqut44N/exec",
+            method: "POST",
+            data: {
+            	"send_info":"delete_exam",
+              "exam": id[0]+"_"+id[1],
+            },
+            dataType: "JSON",
+            success: function (data) {
+              alert("delete success");
+            }
+          });
+          setTimeout(function () { location.reload(true); }, 1000);
+        }
+      });
+    });
+  	function select_type(){    			
+  		var value =	document.getElementById("type_question").value;
+  		if(value!="0"){
+  			if(value=="transition_matrix_type4"){
+  				document.getElementById("size_question").style.display="none";
+  				document.getElementById("n_size_question").style.display="";
+  				document.getElementById("m_size_question").style.display="";
+  			}
+  			else{
+  				document.getElementById("size_question").style.display="";
+  				document.getElementById("n_size_question").style.display="none";
+  				document.getElementById("m_size_question").style.display="none";
+  			}
+  			document.getElementById("size").style.display="";
+  			document.getElementById("question_img").style.display="";
+  			if(value=="NonHomogeneous")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CFind%5C%20the%5C%20solution%5C%20of%5C%20the%5C%20system%5C%20of%5C%20linear%5C%20equation%5C%20listed%5C%20above.%5C%5C%5Cbegin%7Bbmatrix%7D2&5%5C%5C3&7%5C%5C%5Cend%7Bbmatrix%7D%5Cbegin%7Bbmatrix%7D1%5C%5C1%5C%5C%5Cend%7Bbmatrix%7D";
+  			if(value=="Homogeneous")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CFind%5C%20the%5C%20solution%5C%20of%5C%20the%5C%20system%5C%20of%5C%20linear%5C%20equation%5C%20listed%5C%20above.%5C%5C%5Cbegin%7Bbmatrix%7D2&5%5C%5C3&7%5C%5C%5Cend%7Bbmatrix%7D%5Cbegin%7Bbmatrix%7D0%5C%5C0%5C%5C%5Cend%7Bbmatrix%7D";
+  			if(value=="Inverse")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CDetermine%5C%20whether%5C%20the%5C%20following%5C%20matrix%5C%20is%5C%20invertible.%5C%5C%5Cbegin%7Bbmatrix%7D2&5%5C%5C1&3%5C%5C%5Cend%7Bbmatrix%7D%5E%7B-1%7D=%5Cbegin%7Bbmatrix%7Da&b%5C%5Cc&d%5C%5C%5Cend%7Bbmatrix%7D";
+  			if(value=="Involutory_matrix")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Clarge%20%5Cdpi%7B300%7D%5Cbg%7Bwhite%7D%5C%5CFind%5C%20an%5C%20invertible%5C%20matrix%5C%20A%5C%20which%5C%20is%5C%20not%5C%20an%5C%20identity%5C%5C%20matrix%5C%20such%5C%20that%5C%20A=A%5E%7B-1%7D.%5C%5C%5Cbegin%7Bbmatrix%7Da&b%5C%5Cc&d%5C%5C%5Cend%7Bbmatrix%7D";
+  			if(value=="transition_matrix_type1")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CLet%5C%20B=%5Cleft%5C%7B(-4,0),(1,-4)%5Cright%5C%7D%5C%20and%5C%20B'=%5Cleft%5C%7B(-4,-4),(-7,-11)%5Cright%5C%7D%5C%5Cbe%5C%20basis%5C%20for%5C%20R%5E%7B2%7D,and%5C%20let%5C%20A=%5Cbegin%7Bbmatrix%7D3&0%5C%5C0&3%5C%5C%5Cend%7Bbmatrix%7Dbe%5C%20the%5C%20matrix%5C%5Cfor%5C%20T:R%5E%7B2%7D%5Cto%20R%5E%7B2%7D%5C%20relative%5C%20to%5C%20B.%5C%5CFind%5C%20the%5C%20matrix%5C%20of%5C%20T%5C%20relative%5C%20to%5C%20B'.%20";
+  			if(value=="transition_matrix_type2")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CThe%5C%20Linear%5C%20Transformation%5C%20T:R%5E%7B2%7D%5Cto%20R%5E%7B2%7D%5C%20is%5C%20defined%5C%20by%5C%5CT(x_1,x_2)=(4x_1&plus;5x_2,x_1&plus;x_2)%5C%5CFind%5C%20the%5C%20standard%5C%20matrix%5C%20for%5C%20T,and%5C%20find%5C%20its%5C%20inverse."
+  		
+  			if(value=="transition_matrix_type3")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CLet%5C%20T%20:%20R%5E%7B2%7D%5Cto%20R%5E%7B2%7D%5C%20be%5C%20a%5C%20L.T.%5C%20defined%5C%20by%5C%5CT(x_1,x_2)=(1x_1&plus;3x_2,3x_1&plus;1x_2)%5C%5CFind%5C%20the%5C%20matrix%5C%20of%5C%20T%5C%20relative%5C%20to%5C%20the%5C%20basis%5C%5CB=%5Cleft%5C%7B(3,0),(3,0)%5Cright%5C%7Dand%5C%20B%27=%5Cleft%5C%7B(0,2),(2,-4)%5Cright%5C%7D";
+  			if(value=="transition_matrix_type4")
+  				document.getElementById("image").src="https://latex.codecogs.com/gif.image?%5Cinline%20%5Cdpi%7B400%7D%5Cbg%7Bwhite%7D%5C%5CThe%5C%20L.%5C%20T.%5C%20T:R%5En%20%5Cto%20R%5Em%5C%20is%5C%20given%5C%20by%20T(x)=A(x).%5C%5CFind%5C%20the%5C%20nullity%5C%20and%5C%20rank%5C%20of%5C%20T%5C%20and%5C%20determine%5C%5Cwhether%5C%20T%5C%20is%5C%20one-to-one,onto,or%5C%20neither.%5C%5CA=%5Cbegin%7Bbmatrix%7D8&-5&%5C%5C3&-9&%5C%5C1&0&%5C%5C%5Cend%7Bbmatrix%7D";
+  		}
+  		else{
+  			document.getElementById("size").style.display="none";
+  			document.getElementById("answer").style.display="none";
+  			document.getElementById("question_img").style.display="none";
+  		}
+  		document.getElementById("answer").style.display="none";
+  		document.getElementById("number").style.display="none";
+  		document.getElementById("point").style.display="none";
+  		document.getElementById("size_question").value="0";
+  		document.getElementById("n_size_question").value="0";
+  		document.getElementById("m_size_question").value="0";
+  		document.getElementById("type_answer").value="0";
+  		document.getElementById("question_number").value="1";
+  		document.getElementById("question_point").value="0";
+  		document.getElementById("save").style.display="none";
+  	}
+  	function select_size(){
+  		document.getElementById("save").style.display="none";
+  		document.getElementById("question").value="0";
+  		document.getElementById("type_answer").value="0";
+  		document.getElementById("number").style.display="none";
+  		document.getElementById("point").style.display="none";
+  		var value =	document.getElementById("type_question").value;
+  		var size =	document.getElementById("size_question").value;
+  		var n_size =	document.getElementById("n_size_question").value;
+  		var m_size =	document.getElementById("m_size_question").value;
+  		if(value=="NonHomogeneous" || value=="Homogeneous"){
+  			if(size!="0"){
+  				document.getElementById("answer").style.display="";
+  				document.getElementById("type_answer").innerHTML='<option value="0">請選擇答案類型</option><option value="唯一解">唯一解</option><option value="多組解">多組解</option><option value="無解">無解</option>';
+  			}
+  			else{
+  				document.getElementById("answer").style.display="none";
+  			}
+  		}
+  		else if (value=="Inverse"){
+  				if(size!="0"){
+  				document.getElementById("answer").style.display="";
+  				document.getElementById("type_answer").innerHTML='<option value="0">請選擇答案類型</option><option value="唯一解">唯一解</option><option value="無解">無解</option>';
+  			}
+  			else{
+  				document.getElementById("answer").style.display="none";
+  			}
+  		}
+  		else if (value=="transition_matrix_type4"){
+  			document.getElementById("answer").style.display="none";
+				document.getElementById("question_number").value="1";
+				document.getElementById("question_point").value="0";
+  			if(n_size!=0&&m_size!=0){
+  				document.getElementById("number").style.display="";
+  				document.getElementById("point").style.display="";
+					document.getElementById("save").style.display="";
+  			}
+  			else{
+  				document.getElementById("number").style.display="none";
+  				document.getElementById("point").style.display="none";
+					document.getElementById("save").style.display="none";
+  			}
+  		}
+  		else {
+  			document.getElementById("answer").style.display="none";
+				document.getElementById("question_number").value="1";
+				document.getElementById("question_point").value="0";
+  			if(size!="0"){
+  				document.getElementById("number").style.display="";
+  				document.getElementById("point").style.display="";
+					document.getElementById("save").style.display="";
+  			}
+  			else{
+  				document.getElementById("number").style.display="none";
+  				document.getElementById("point").style.display="none";
+					document.getElementById("save").style.display="none";
+  			}
+  			
+  		}
+  	}
+  	function select_answer(){
+  		var num = document.getElementById("type_answer").value;
+  		document.getElementById("question_number").value="1";
+  		document.getElementById("question_point").value="0";
+  		if(num!="0"){
+  			document.getElementById("number").style.display="";
+  			document.getElementById("point").style.display="";
+  			document.getElementById("save").style.display="";
+  		}
+  		else{
+  			document.getElementById("number").style.display="none";
+  			document.getElementById("point").style.display="";
+  			document.getElementById("save").style.display="none";
+  		}
+  	}
+  	
+  	function save_question(){
+  		question_num++;
+  		var info = document.getElementById("question_information").innerHTML;
+  		var type_question = document.getElementById("type_question").value;
+  		var size_question
+  		if(type_question == "transition_matrix_type4"){
+  			size_question = document.getElementById("n_size_question").value+"-"+document.getElementById("m_size_question").value;
+  		}
+  		else{
+  			size_question = document.getElementById("size_question").value;
+  		}
+  		var type_answer = document.getElementById("type_answer").value;
+  		var question_number = document.getElementById("question_number").value;
+  		var	question_point = document.getElementById("question_point").value;
+  		var str =""
+  		str+="<tr id='save_question_"+question_num+"'><th id='type_question_"+question_num+"' style='font-size:3vh'>"+type_question+"</th><th id='size_question_"+question_num+"' style='font-size:3vh'>"+size_question+"</th>";
+  		if(type_question=="NonHomogeneous" || type_question=="Homogeneous"||type_question=="Inverse"){
+  			str+="<th id='type_answer_"+question_num+"' style='font-size:3vh'>"+type_answer+"</th>";
+  		}
+  		else{
+  			str+="<th  id='type_answer_"+question_num+"' style='font-size:3vh';>-</th>";
+  		}
+  		str+="<th id='question_number_"+question_num+"' style='font-size:3vh'>"+question_number+"</th><th id='question_point_"+question_num+"' style='font-size:3vh'>"+question_point+"</th><th><button type ='button' style='font-size:3vh;' class='btn btn-danger btn-sm' onclick='delete_question("+question_num+")'>刪除</button></th></tr>";
+  		document.getElementById("question_information").innerHTML+=str;
+  		alert("成功添加");
+  		document.getElementById("size").style.display="none";
+  		document.getElementById("answer").style.display="none";
+  		document.getElementById("number").style.display="none";
+  		document.getElementById("point").style.display="none";
+  		document.getElementById("save").style.display="none";
+  		document.getElementById("size_question").value="0";
+  		document.getElementById("type_answer").value="0";
+  		document.getElementById("question_number").value="1";
+  		document.getElementById("question_point").value="0";
+  		document.getElementById("type_question").value="0";
+  		document.getElementById("question_img").style.display="none";
+  	}
+  	function delete_question(num){
+  		var check = confirm("確定要刪除嗎?");
+  		if(check){
+  			question_num--;
+				const element = document.getElementById("save_question_"+num);
+				element.remove();
+  		}
+  	}
+  </script>
+</body>
+
+</html>

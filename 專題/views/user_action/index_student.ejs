@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Webrtc Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600&family=Josefin+Slab&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="js/config.js"></script>
+  
+  <link rel="stylesheet" href="/css/login.css">
+
+
+</head>
+
+<body>
+  <% if(log_fail!=''){%>
+  <div class = "alert alert-danger">
+    <strong>登入失敗。</strong> <%= log_fail %>
+  </div>
+  <% } %>
+  <% if(fgt_fail!=''&&fgt_success===''){%>
+  <div class = "alert alert-danger" id="fail_info">
+    <strong>失敗。</strong> <%= fgt_fail %>    
+  </div>
+  <% } %>
+
+  <% if(fgt_fail===''&&fgt_success!=''){%>
+  <div class = "alert alert-success" id='success_info'>
+    <strong>成功。</strong> <%= fgt_success %>
+  </div>
+  <% } %>
+  
+  
+  <div class="form-structor">
+    <div class="login">
+      <h2 class="form-title" style="font-size:5vh;" id="login"><span>or</span>Login</h2>
+      <form action="/loginStudent" method="POST">
+        <div class="form-holder">
+          <input type="text"  style="font-size:2.5vh;" class="input" placeholder="Account" id="login_account" name="login_account" required/>
+          <input type="password" style="font-size:2.5vh;" class="input" placeholder="Password" id="login_password" name="login_password"  required/>
+        </div>
+        <button style="font-size:3.5vh;" type="submit" class="submit-btn" id="login_submit" onclick="return confirmSend();">Log in</button>
+      </form>
+    </div>
+    <div class="fgt slide-up">
+      <div class="center">
+        <h2 class="form-title" style="font-size:3.5vh;" id="fgt"><span>or</span>Forget password</h2>
+        <form action="/fgt" method="POST">
+        <div class="form-holder">
+          <input type="text"  style="font-size:2.5vh;" class="input" placeholder="Account" id="fgt_account" name="fgt_account" required/>
+          <input type="email" style="font-size:2.5vh;" class="input" placeholder="Email" id="fgt_email" name="fgt_email" required/>
+        </div>
+        <button type="submit" style="font-size:3.5vh;" class="submit-btn" id="fgt_submit" onclick="return confirmSend();">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+  <script>
+    const fgtBtn = document.getElementById('fgt');
+    const loginBtn = document.getElementById('login');
+
+    fgtBtn.addEventListener('click', (e) => {
+      let parent = e.target.parentNode.parentNode;
+      Array.from(e.target.parentNode.parentNode.classList).find((element) => {
+        if(element !== "slide-up") {
+	  parent.classList.add('slide-up')
+	}
+	else{
+	  loginBtn.parentNode.classList.add('slide-up')
+	  parent.classList.remove('slide-up')
+        }
+      });
+    });
+
+    loginBtn.addEventListener('click', (e) => {
+      let parent = e.target.parentNode;
+      Array.from(e.target.parentNode.classList).find((element) => {
+        if(element !== "slide-up") {
+          parent.classList.add('slide-up')
+        }
+        else{
+          fgtBtn.parentNode.parentNode.classList.add('slide-up')
+          parent.classList.remove('slide-up')
+        }
+      });
+    });  
+  </script>  
+  <script>
+    function confirmSend(){
+      const result = confirm('確定送出?');
+      if(result) return true;
+      else return false;
+    }
+  </script>
+
+
+</body>
+
+</html>

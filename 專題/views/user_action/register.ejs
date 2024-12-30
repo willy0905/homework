@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Webrtc Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600&family=Josefin+Slab&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="js/config.js"></script>
+  
+  <link rel="stylesheet" href="/css/login.css">
+
+
+</head>
+
+<body>
+  <% if(reg_fail!=''&&reg_success===''){%>
+  <div class = "alert alert-danger">
+    <strong>註冊失敗。</strong> <%= reg_fail %>
+  </div>
+  <% } %>
+
+  <% if(reg_fail===''&&reg_success!=''){%>
+  <div class = "alert alert-success">
+    <strong>註冊成功。</strong> <%= reg_success %>
+  </div>
+  <% } %>
+    <div class="form-structor">
+      <div class="login">
+        <h2 class="form-title" style="font-size:5vh;" id="login">Create Account</h2>
+        <form action="" method="POST">
+          <div class="form-holder">
+            <%  if(reg_user=='professor'){ %>
+              <input id="reg_account" style="font-size:2.5vh;" name="reg_account" type="text" class="input" placeholder="Account" required/>     
+            <% } else { %>  
+              <input id="reg_account" style="font-size:2.5vh;"name="reg_account" type="text" pattern="\d{7}" class="input" placeholder="Account  ex: 1101400" required/>       
+            <% } %>        
+            <input style="font-size:2.5vh;" id="reg_email" name="reg_email" type="email" class="input" placeholder="Email" required/>
+            <input style="font-size:2.5vh;" id="reg_password" name="reg_password" type="text" class="input" placeholder="Password" required/>
+            <input style="font-size:2.5vh;" id="reg_confirm_password" name="reg_confirm_password" type="text" class="input" placeholder="Confirm" required/>
+          </div>
+        <button style="font-size:3.5vh;" type="submit" class="submit-btn" id="reg_submit" onclick="return confirmSend();">Sign up</button>
+      </form>
+    </div>
+    <div class="fgt slide-up"></div>
+    </div>
+  <script>
+    function confirmSend(){
+      const result = confirm('確定送出?');
+      if(result) return true;
+      else return false;
+    }
+  </script>
+
+
+
+</body>
+
+</html>

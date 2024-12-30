@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Webrtc AdminSystem</title> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" http-equiv="refresh" content="5">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600&family=Josefin+Slab&display=swap" rel="stylesheet"> 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link href="https://cdn.datatables.net/1.12.0/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.12.0/js/dataTables.bootstrap5.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script> 
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script> 
+  <script src="js/config.js"></script> 
+
+</head>
+
+<body class="h-100">
+
+<!-- Modal create user-->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="sample_form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">create user</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">        
+          <div class="form-group">
+              <label for="account">Account</label>
+              <input id="addUserName" name="addUserName" type="text" class="form-control" placeholder="please enter your student ID, ex:1100001" required />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input id="addUserPwd" name="addUserPwd" type="text" class="form-control" placeholder="please enter your password" required/>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input id="addUserAddr"  name="addUserAddr" type="email" class="form-control" placeholder="please enter your email" required/>
+            </div>
+             <div class="form-group">
+              <label for="authority">Authority</label>
+              <input id="addUserAuthority"  name="addUserAuthority" type="number"max=2 min=0 class="form-control"required/>
+            </div>  
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-dark" id ="Addsubmit">Submit</button>                        <!--onclick ="adduser()"-->
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cansel</button> 
+        </div>
+      </form>  
+    </div>
+  </div>
+</div>
+
+<!-- Modal edit user-->
+<div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="EditModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="edit_form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">edit user</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">        
+          <div class="form-group">
+              <label for="account">Account</label>
+              <input id="editUserName" name="editUserName" type="text" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input id="editUserPwd" name="editUserPwd" type="text" class="form-control" required/>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input id="editUserAddr"  name="editUserAddr" type="email" class="form-control" required/>
+            </div>
+             <div class="form-group">
+              <label for="authority">Authority</label>
+              <input id="editUserAuthority"  name="editUserAuthority" type="number"max=2 min=0 class="form-control"required/>
+            </div>  
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-dark" id ="Editubmit">Edit</button>                        <!--onclick ="adduser()"-->
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cansel</button> 
+        </div>
+      </form>  
+    </div>
+  </div>
+</div>
+
+
+
+
+  <% if(sysadmin!=''){%>
+    <div class = "alert alert-success" id ="login_info">
+      <strong>登入成功。Welcome, </strong> <%= sysadmin %>
+      <strong>sysadmin!!! </strong>
+      <button type="button" class="btn-close btn-sm float-end" id = 'info_close'></button>
+    </div>
+  <% } %>
+  <table style="border-collapse: collapse; width: 100%; height: 37px; min-width: 600px;">
+    <td><h1 class="text-center mt-3">administrator</h1></td>
+    <td>
+      <a href="https://140.138.144.120:1447/user/sysadmin">Index</a>
+      <a href="https://140.138.144.120:1447/user/sysadmin/score">Score</a>
+    </td>
+    <td>
+      <form method ="POST"action='/logout'>
+        <input type ="hidden" value = "<%=sysadmin %>">
+        <button type="submit" class=" btn btn-dark btn-sm float-end">logout</button>
+      </form> 
+    </td>
+  </table>
+   
+  <span id="message"></span>
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col col-sm-9">User information</div>
+          <div class="col col-sm-3">
+            <button type="button" id="add_data" class="btn btn-dark btn-sm float-end" data-bs-toggle="modal" data-bs-target="#exampleModal">新增使用者</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered" id="user_information">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>account</th>
+                <th>password</th>
+                <th>email</th>
+                <th> authority </th>
+                <th> action </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% var i =0; %>
+              <% user.forEach(function(user) { %>
+                <% i ++; %>
+                <tr>
+		  <th> <%= i %> </th>
+		  <th> <%= user.account %> </th>
+		  <th> <%= user.password %> </th>
+		  <th> <%= user.address %> </th>
+		  <th> <%= user.authority %> </th>		  
+		  <th>
+		    <button type = 'button' class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#EditModal" data-whatever = "<%= user.account %>+<%= user.password %>+<%= user.address %>+<%= user.authority %>">Edit</button>
+		    <button type ="button" class="btn btn-danger btn-sm delete" id="Delsubmit" data-id = "<%= user.id %>" >Delete</button> 
+		  </th>
+		</tr>
+	      <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function(){
+      $('#sample_form').on('submit',function(event){
+        event.preventDefault();
+        $.ajax({
+          url:'https://140.138.144.152:1436/admin/create',
+          type:'post',
+          data:{
+            "accountSend": $('#addUserName').val(),
+            "passwordSend":$('#addUserPwd').val(),
+            "addressSend": $('#addUserAddr').val(),
+            "authoritySend":$('#addUserAuthority').val(),
+          },
+          success:function(data){
+            alert("send success");
+          }
+        });
+        setTimeout(function () { location.reload(true); }, 1000);
+      });
+      $(document).on('click', '.delete', function(){
+        var id = $(this).data('id');
+        if(confirm("Are you sure you want to delete this data?")){
+            $.ajax({
+                url:"https://140.138.144.152:1436/admin/delete",
+                method:"POST",
+                data:{id:id},
+                dataType:"JSON",
+                success:function(data){
+                  alert("delete success");
+                }
+            });
+        }
+        setTimeout(function(){location.reload(true);}, 1000);
+      });
+      $('#EditModal').on('show.bs.modal', function(event){
+        var button =$(event.relatedTarget);
+        var str_temp =button.data('whatever');
+        var str_list = str_temp.split('+');
+        $('#editUserName').val(str_list[0]);        
+        $('#editUserPwd').val(str_list[1]);        
+        $('#editUserAddr').val(str_list[2]);        
+        $('#editUserAuthority').val(str_list[3]);        
+      });
+      
+      $('#edit_form').on('submit',function(event){
+        event.preventDefault();
+        $.ajax({
+          url:'https://140.138.144.152:1436/admin/edit',
+          type:'post',
+          data:{
+            "accountSend": $('#editUserName').val(),
+            "passwordSend":$('#editUserPwd').val(),
+            "addressSend": $('#editUserAddr').val(),
+            "authoritySend":$('#editUserAuthority').val(),
+          },
+          success:function(data){
+            alert("edit success");
+          },
+          error:function(err){
+            
+          }
+        });
+        setTimeout(function () { location.reload(true); }, 1000);
+      });
+      
+      $("#info_close").on('click', function(e){
+        e.preventDefault();
+        $("#login_info").attr("style","display:none");
+      });
+      
+      
+      
+    });
+  </script>
+  <!--  
+
+  <script>
+  
+    $(document).on('click', '.info_close', function(){
+        $("login_info").attr("style","display:none");
+        //setTimeout(function(){location.reload(true);}, 1000);
+      });
+    function delUser(){
+      const result = confirm('確定delete?')
+      if(result){
+        return true;
+      }
+      else{  
+        return false;
+      }
+    }
+  </script>
+  
+  -->
+  
+</body>
+  
+</html>
